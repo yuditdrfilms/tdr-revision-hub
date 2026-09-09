@@ -22,7 +22,6 @@
     --brand-amber: #F59E0B;
     --brand-teal: #10B981;
     --brand-danger: #EF4444;
-    --brand-purple: #6366F1;
     --radius-sm: 6px;
     --radius-md: 10px;
     --radius-lg: 14px;
@@ -35,7 +34,6 @@
   body { background: var(--bg); color: var(--text-main); font-family: var(--font-sans); font-size: 13.5px; line-height: 1.5; }
   button, input, select { font-family: inherit; }
 
-  /* Buttons & Inputs */
   .btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 7px 14px; border-radius: var(--radius-sm); border: 1px solid var(--border-dark); background: var(--surface); color: var(--text-main); font-size: 12.5px; font-weight: 500; cursor: pointer; transition: all .15s ease; box-shadow: var(--shadow-sm); }
   .btn:hover { background: var(--surface-hover); border-color: #ADB5BD; }
   .btn-primary { background: var(--brand-primary); border-color: var(--brand-primary); color: #fff; }
@@ -44,7 +42,7 @@
   .btn-approve:hover { background: #059669; }
   .btn-ghost { background: transparent; border-color: transparent; box-shadow: none; color: var(--text-muted); }
   .btn-ghost:hover { background: var(--surface-hover); color: var(--text-main); }
-  .btn-sm { padding: 4px 9px; font-size: 11.5px; }
+  .btn-sm { padding: 5px 10px; font-size: 11.5px; }
   .btn:disabled { opacity: 0.45; cursor: not-allowed; }
 
   .input { background: var(--surface); border: 1px solid var(--border-dark); color: var(--text-main); padding: 8px 11px; border-radius: var(--radius-sm); font-size: 13px; width: 100%; transition: border-color .15s; }
@@ -52,7 +50,6 @@
   select.input { cursor: pointer; }
   .field-label { font-size: 12px; font-weight: 600; color: var(--text-muted); margin-bottom: 5px; display: block; }
 
-  /* Badges */
   .tag { font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 20px; display: inline-flex; align-items: center; gap: 4px; }
   .tag-review { background: #FEF3C7; color: #B45309; }
   .tag-approved { background: #D1FAE5; color: #065F46; }
@@ -74,7 +71,7 @@
   .brand-title { font-weight: 600; font-size: 14px; }
   .topbar-right { display: flex; align-items: center; gap: 14px; }
 
-  /* Dashboard Cards (Notion Gallery Style) */
+  /* Dashboard */
   #dashboard { display: none; min-height: 100vh; flex-direction: column; }
   .dash-container { flex: 1; padding: 36px 48px; max-width: 1400px; width: 100%; margin: 0 auto; }
   .dash-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px; }
@@ -85,11 +82,10 @@
   .gallery-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-card); border-color: var(--border-dark); }
   
   .card-banner { height: 120px; display: flex; align-items: center; justify-content: center; position: relative; padding: 16px; }
-  .card-banner img { max-height: 75%; max-width: 75%; object-fit: contain; }
+  .card-banner img { max-height: 80%; max-width: 80%; object-fit: contain; }
   .card-banner-text { font-size: 20px; font-weight: 700; color: #fff; text-shadow: 0 1px 3px rgba(0,0,0,0.3); }
-  .card-edit-btn { position: absolute; top: 8px; right: 8px; background: rgba(255,255,255,0.85); border-radius: 4px; border: none; padding: 4px 8px; font-size: 11px; font-weight: 600; color: var(--text-main); opacity: 0; transition: opacity .15s; }
+  .card-edit-btn { position: absolute; top: 8px; right: 8px; background: rgba(255,255,255,0.9); border-radius: 4px; border: none; padding: 4px 8px; font-size: 11px; font-weight: 600; color: var(--text-main); opacity: 0; transition: opacity .15s; cursor: pointer; }
   .gallery-card:hover .card-edit-btn { opacity: 1; }
-  .card-edit-btn:hover { background: #fff; }
 
   .card-content { padding: 14px 16px; flex: 1; display: flex; flex-direction: column; }
   .card-title { font-size: 14.5px; font-weight: 600; margin-bottom: 2px; }
@@ -97,7 +93,7 @@
   .card-meta-row { margin-top: auto; display: flex; justify-content: space-between; align-items: center; font-size: 11.5px; color: var(--text-muted); border-top: 1px solid var(--border); padding-top: 10px; }
   .card-deadline { display: flex; align-items: center; gap: 4px; font-weight: 500; }
 
-  /* Workspace Layout */
+  /* Workspace */
   #workspace { display: none; height: 100vh; flex-direction: column; background: var(--surface); }
   .ws-body { flex: 1; display: grid; grid-template-columns: 260px 1fr 370px; min-height: 0; }
 
@@ -108,40 +104,40 @@
   .video-nav-item:hover { background: var(--surface-hover); }
   .video-nav-item.active { background: var(--surface); box-shadow: var(--shadow-sm); border: 1px solid var(--border); font-weight: 600; }
   
-  .ws-center { display: flex; flex-direction: column; background: #000; overflow: hidden; }
-  .ws-top-controls { padding: 10px 20px; background: var(--surface); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
-  .draft-select-group { display: flex; align-items: center; gap: 10px; }
+  .ws-center { display: flex; flex-direction: column; background: #0E1013; overflow: hidden; }
+  .ws-top-controls { padding: 10px 20px; background: var(--surface); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  .draft-select-group { display: flex; align-items: center; gap: 8px; }
 
   .player-frame-wrap { flex: 1; position: relative; background: #000; display: flex; align-items: center; justify-content: center; }
   #ytPlayer { width: 100%; height: 100%; }
   .player-shield { position: absolute; inset: 0; z-index: 5; cursor: pointer; }
 
-  /* Transport & Scrubber */
+  /* Transport */
   .transport { padding: 12px 20px 14px; background: var(--surface); border-top: 1px solid var(--border); }
   .scrubber-row { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
-  .time-code { font-family: var(--font-mono); font-size: 12px; color: var(--text-muted); }
+  .time-code { font-family: var(--font-mono); font-size: 12px; color: var(--text-muted); min-width: 44px; }
   .scrubber { flex: 1; height: 18px; position: relative; cursor: pointer; }
   .scrubber-track { position: absolute; top: 50%; left: 0; right: 0; height: 4px; background: var(--border-dark); transform: translateY(-50%); border-radius: 2px; }
   .scrubber-fill { position: absolute; top: 50%; left: 0; height: 4px; background: var(--text-main); transform: translateY(-50%); border-radius: 2px; pointer-events: none; }
   .scrubber-playhead { position: absolute; top: 50%; width: 12px; height: 12px; background: var(--text-main); border-radius: 50%; transform: translate(-50%, -50%); pointer-events: none; }
   .stamp-marker { position: absolute; top: 50%; width: 8px; height: 8px; border-radius: 50%; transform: translate(-50%, -50%); cursor: pointer; border: 1.5px solid #fff; z-index: 2; }
 
-  /* Right Review Panel */
+  /* Revisions Panel */
   .ws-panel { border-left: 1px solid var(--border); display: flex; flex-direction: column; background: var(--surface); }
   .ws-panel-head { padding: 14px 18px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: baseline; font-weight: 600; }
   .stamps-list { flex: 1; overflow-y: auto; padding: 12px; }
   
-  .stamp-card { border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px; margin-bottom: 10px; background: var(--surface); box-shadow: var(--shadow-sm); }
-  .stamp-card.archived-draft { opacity: 0.7; background: #F8F9FA; border-style: dashed; }
+  .stamp-card { border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px; margin-bottom: 10px; background: var(--surface); box-shadow: var(--shadow-sm); cursor: pointer; }
+  .stamp-card.archived-draft { opacity: 0.65; background: #F8F9FA; border-style: dashed; }
   .stamp-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
-  .stamp-timestamp { font-family: var(--font-mono); font-size: 11.5px; font-weight: 600; color: var(--brand-primary); cursor: pointer; }
-  .stamp-note { font-size: 13px; margin-bottom: 8px; color: var(--text-main); }
+  .stamp-timestamp { font-family: var(--font-mono); font-size: 11.5px; font-weight: 600; color: var(--brand-primary); }
+  .stamp-note { font-size: 13px; margin-bottom: 8px; color: var(--text-main); word-break: break-word; }
   
   /* Composer */
   .composer { display: none; padding: 12px 18px; border-top: 1px solid var(--border); background: var(--surface); gap: 8px; }
   .composer.open { display: flex; }
 
-  /* Modal */
+  /* Modals */
   .modal-backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.45); align-items: center; justify-content: center; z-index: 100; backdrop-filter: blur(2px); }
   .modal-backdrop.open { display: flex; }
   .modal { width: 460px; max-height: 90vh; overflow-y: auto; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); }
@@ -153,7 +149,7 @@
 </head>
 <body>
 
-<!-- ================= LOGIN ================= -->
+<!-- LOGIN -->
 <div id="loginScreen">
   <div class="login-box">
     <h1>TDR Revision Hub</h1>
@@ -166,12 +162,12 @@
       <label class="field-label">Password</label>
       <input type="password" class="input" id="loginPass" placeholder="••••••••">
     </div>
-    <div class="login-error" id="loginError">Invalid credentials.</div>
+    <div class="login-error" id="loginError">Invalid email or password.</div>
     <button class="btn btn-primary" id="loginBtn" style="width: 100%">Sign In</button>
   </div>
 </div>
 
-<!-- ================= DASHBOARD ================= -->
+<!-- DASHBOARD -->
 <div id="dashboard">
   <div class="topbar">
     <div class="brand-group">
@@ -197,7 +193,7 @@
   </div>
 </div>
 
-<!-- ================= WORKSPACE ================= -->
+<!-- WORKSPACE -->
 <div id="workspace">
   <div class="topbar">
     <div class="brand-group">
@@ -212,22 +208,23 @@
   </div>
 
   <div class="ws-body">
-    <!-- Left: Video & Drafts List -->
+    <!-- Sidebar: Video Groups -->
     <div class="ws-sidebar">
       <div class="ws-sidebar-head">
         <span>Videos</span>
-        <button class="btn btn-sm" id="addVideoBtn">+ New Video</button>
+        <button class="btn btn-sm" id="addNewVideoGroupBtn">+ New Video</button>
       </div>
       <div class="video-list" id="videoNavList"></div>
     </div>
 
-    <!-- Center: YouTube Player & Scrubber -->
+    <!-- Center: YouTube Player -->
     <div class="ws-center">
       <div class="ws-top-controls">
         <div class="draft-select-group">
           <label class="field-label" style="margin: 0;">Active Draft:</label>
-          <select class="input" id="draftSelect" style="width: 140px; padding: 4px 8px; font-weight: 600;"></select>
-          <button class="btn btn-sm" id="editVideoBtn" title="Change YouTube Link or Draft Number">Edit Video / Link</button>
+          <select class="input" id="draftSelect" style="width: 120px; padding: 4px 8px; font-weight: 600;"></select>
+          <button class="btn btn-primary btn-sm" id="addNewDraftBtn">+ New Draft</button>
+          <button class="btn btn-sm" id="editVideoBtn">Edit Link</button>
         </div>
         <div id="approveSlot"></div>
       </div>
@@ -260,7 +257,7 @@
       </div>
     </div>
 
-    <!-- Right: Revision List -->
+    <!-- Right: Revisions -->
     <div class="ws-panel">
       <div class="ws-panel-head">
         <span>Revisions</span>
@@ -271,9 +268,7 @@
   </div>
 </div>
 
-<!-- ================= MODALS ================= -->
-
-<!-- Create Project Modal -->
+<!-- Modal: New Project -->
 <div class="modal-backdrop" id="projectModal">
   <div class="modal">
     <h3>New Project</h3>
@@ -305,11 +300,11 @@
   </div>
 </div>
 
-<!-- Edit Project Modal (Master Only) -->
+<!-- Modal: Edit Project (Master Only) -->
 <div class="modal-backdrop" id="projectEditModal">
   <div class="modal">
     <h3>Edit Project Details</h3>
-    <p class="modal-sub">Update project configuration & delivery schedule</p>
+    <p class="modal-sub">Update project configuration & schedule</p>
     <div class="modal-field">
       <label class="field-label">Project Name</label>
       <input type="text" class="input" id="peName">
@@ -337,18 +332,18 @@
   </div>
 </div>
 
-<!-- New/Edit Video Modal -->
+<!-- Modal: Add/Edit Video Draft -->
 <div class="modal-backdrop" id="videoModal">
   <div class="modal">
     <h3 id="vmModalTitle">Video Setup</h3>
-    <p class="modal-sub">Link an unlisted YouTube video draft</p>
+    <p class="modal-sub">Link an unlisted YouTube video or Shorts</p>
     <div class="modal-field">
       <label class="field-label">Video Title</label>
       <input type="text" class="input" id="vmTitle" placeholder="e.g. Teaser Cut">
     </div>
     <div class="modal-field">
       <label class="field-label">YouTube Link / Video ID</label>
-      <input type="text" class="input" id="vmUrl" placeholder="https://youtu.be/...">
+      <input type="text" class="input" id="vmUrl" placeholder="https://youtube.com/shorts/... or https://youtu.be/...">
     </div>
     <div class="modal-field">
       <label class="field-label">Draft Number</label>
@@ -370,15 +365,19 @@ const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 const state = {
   me: null, projects: [], members: [], videos: [], stamps: [], profiles: [],
-  currentProjectId: null, currentVideoId: null, editingProjectId: null, editingVideoId: null
+  currentProjectId: null, currentVideoId: null, selectedVideoTitle: null,
+  editingProjectId: null, editingVideoId: null
 };
 
 const $ = id => document.getElementById(id);
 
 function extractYouTubeId(url) {
-  const m = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})/);
+  if (!url) return null;
+  url = url.trim();
+  const m = url.match(/(?:youtube\.com\/(?:watch\?.*v=|embed\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
   if (m) return m[1];
-  return url.length === 11 ? url : null;
+  if (/^[a-zA-Z0-9_-]{11}$/.test(url)) return url;
+  return null;
 }
 
 function formatTime(sec) {
@@ -386,8 +385,8 @@ function formatTime(sec) {
   return String(Math.floor(sec/60)).padStart(2,'0') + ':' + String(sec%60).padStart(2,'0');
 }
 
-/* ================= AUTH ================= */
-$('loginBtn').addEventListener('click', async () => {
+/* AUTH */
+$('loginBtn').onclick = async () => {
   const email = $('loginEmail').value.trim();
   const password = $('loginPass').value;
   const err = $('loginError');
@@ -396,12 +395,12 @@ $('loginBtn').addEventListener('click', async () => {
   const { error } = await sb.auth.signInWithPassword({ email, password });
   if (error) { err.style.display = 'block'; return; }
   bootApp();
-});
+};
 
-$('logoutBtn').addEventListener('click', async () => {
+$('logoutBtn').onclick = async () => {
   await sb.auth.signOut();
   location.reload();
-});
+};
 
 async function loadData() {
   const [pr, pm, vd, st, pf] = await Promise.all([
@@ -423,7 +422,8 @@ async function bootApp() {
   if (!user) return;
   await loadData();
   state.me = state.profiles.find(p => p.id === user.id);
-  
+  if (!state.me) return;
+
   $('loginScreen').style.display = 'none';
   $('dashboard').style.display = 'flex';
   $('dashUserName').textContent = state.me.display_name;
@@ -436,7 +436,7 @@ async function bootApp() {
   renderProjectGrid();
 }
 
-/* ================= DASHBOARD ================= */
+/* DASHBOARD */
 function renderProjectGrid() {
   const grid = $('projectGrid');
   grid.innerHTML = '';
@@ -512,7 +512,7 @@ $('pmSave').onclick = async () => {
   renderProjectGrid();
 };
 
-/* ================= WORKSPACE ================= */
+/* WORKSPACE */
 function openWorkspace(projectId) {
   state.currentProjectId = projectId;
   const project = state.projects.find(p => p.id === projectId);
@@ -537,23 +537,33 @@ function renderWorkspaceVideos() {
   const nav = $('videoNavList');
   nav.innerHTML = '';
 
-  // Kelompokkan unik by Title
   const titles = [...new Set(pVids.map(v => v.title))];
 
   titles.forEach(title => {
     const item = document.createElement('div');
-    item.className = 'video-nav-item';
+    item.className = 'video-nav-item' + (title === state.selectedVideoTitle ? ' active' : '');
     item.textContent = title;
     item.onclick = () => selectVideoGroup(title);
     nav.appendChild(item);
   });
 
   if (titles.length > 0) {
-    selectVideoGroup(titles[0]);
+    if (!state.selectedVideoTitle || !titles.includes(state.selectedVideoTitle)) {
+      selectVideoGroup(titles[0]);
+    } else {
+      selectVideoGroup(state.selectedVideoTitle);
+    }
+  } else {
+    destroyPlayer();
+    $('draftSelect').innerHTML = '';
   }
 }
 
 function selectVideoGroup(title) {
+  state.selectedVideoTitle = title;
+  const navItems = document.querySelectorAll('.video-nav-item');
+  navItems.forEach(el => el.classList.toggle('active', el.textContent === title));
+
   const drafts = state.videos.filter(v => v.project_id === state.currentProjectId && v.title === title)
                              .sort((a, b) => a.draft_number - b.draft_number);
   
@@ -573,7 +583,7 @@ function selectVideoGroup(title) {
   }
 }
 
-/* ================= YOUTUBE PLAYER & SCRUBBER ================= */
+/* YOUTUBE PLAYER */
 let ytPlayer = null, playerReady = false, pollTimer = null;
 
 function loadDraftVideo(videoId) {
@@ -608,7 +618,9 @@ function loadDraftVideo(videoId) {
 
 function destroyPlayer() {
   if (pollTimer) clearInterval(pollTimer);
-  if (ytPlayer && ytPlayer.destroy) ytPlayer.destroy();
+  if (ytPlayer && ytPlayer.destroy) {
+    try { ytPlayer.destroy(); } catch(e){}
+  }
   ytPlayer = null;
   playerReady = false;
 }
@@ -643,24 +655,41 @@ $('scrubber').onclick = (e) => {
   ytPlayer.seekTo(pct * ytPlayer.getDuration(), true);
 };
 
-/* ================= EDIT / NEW VIDEO ================= */
+/* VIDEO ACTIONS */
+// Edit link YouTube pada draft yang aktif
 $('editVideoBtn').onclick = () => {
   const v = state.videos.find(x => x.id === state.currentVideoId);
   if (!v) return;
   state.editingVideoId = v.id;
-  $('vmModalTitle').textContent = 'Edit Video / Draft';
+  $('vmModalTitle').textContent = 'Edit YouTube Link';
   $('vmTitle').value = v.title;
   $('vmUrl').value = `https://youtu.be/${v.youtube_id}`;
   $('vmDraft').value = v.draft_number;
   openModal('videoModal');
 };
 
-$('addVideoBtn').onclick = () => {
+// Buat judul video grup baru
+$('addNewVideoGroupBtn').onclick = () => {
   state.editingVideoId = null;
-  $('vmModalTitle').textContent = 'Add New Video Draft';
+  $('vmModalTitle').textContent = 'Add New Video Title';
   $('vmTitle').value = '';
   $('vmUrl').value = '';
   $('vmDraft').value = 1;
+  openModal('videoModal');
+};
+
+// Tambah draft berikutnya (Draft 2, 3, dst.) untuk judul yang aktif
+$('addNewDraftBtn').onclick = () => {
+  const activeVideo = state.videos.find(x => x.id === state.currentVideoId);
+  if (!activeVideo) return;
+  state.editingVideoId = null;
+  $('vmModalTitle').textContent = `Add Next Draft for "${activeVideo.title}"`;
+  $('vmTitle').value = activeVideo.title;
+  $('vmUrl').value = '';
+
+  const siblingDrafts = state.videos.filter(v => v.project_id === state.currentProjectId && v.title === activeVideo.title);
+  const nextDraft = Math.max(...siblingDrafts.map(v => v.draft_number)) + 1;
+  $('vmDraft').value = nextDraft;
   openModal('videoModal');
 };
 
@@ -669,22 +698,30 @@ $('vmSave').onclick = async () => {
   const url = $('vmUrl').value.trim();
   const draft = parseInt($('vmDraft').value, 10) || 1;
   const ytId = extractYouTubeId(url);
-  if (!title || !ytId) return alert('Invalid Title or YouTube Link');
+
+  if (!title || !ytId) {
+    alert('Please provide a valid Title and YouTube Link/Shorts URL.');
+    return;
+  }
 
   if (state.editingVideoId) {
-    await sb.from('videos').update({ title, youtube_id: ytId, draft_number: draft }).eq('id', state.editingVideoId);
+    const { error } = await sb.from('videos').update({ title, youtube_id: ytId, draft_number: draft }).eq('id', state.editingVideoId);
+    if (error) return alert('Failed to update: ' + error.message);
   } else {
-    await sb.from('videos').insert({
+    const { error } = await sb.from('videos').insert({
       project_id: state.currentProjectId,
       title, youtube_id: ytId, draft_number: draft, uploaded_by: state.me.id
     });
+    if (error) return alert('Failed to create draft: ' + error.message);
   }
+
+  state.selectedVideoTitle = title;
   closeModal('videoModal');
   await loadData();
   renderWorkspaceVideos();
 };
 
-/* ================= STAMPS & MULTI-DRAFT CARRYOVER ================= */
+/* REVISION STAMPS */
 $('addStampBtn').onclick = () => {
   if (!playerReady) return;
   ytPlayer.pauseVideo();
@@ -719,12 +756,10 @@ function renderStamps() {
   const activeVideo = state.videos.find(v => v.id === state.currentVideoId);
   if (!activeVideo) return;
 
-  // Temukan draft-draft untuk judul video yang sama
   const siblingDrafts = state.videos
     .filter(v => v.project_id === state.currentProjectId && v.title === activeVideo.title)
     .sort((a,b) => a.draft_number - b.draft_number);
 
-  // Ambil stamp draft aktif + draft-draft sebelumnya
   const visibleStamps = [];
   siblingDrafts.forEach(d => {
     if (d.draft_number <= activeVideo.draft_number) {
@@ -751,14 +786,13 @@ function renderStamps() {
   });
 }
 
-/* ================= MODAL UTILS ================= */
+/* MODAL UTILS */
 function openModal(id) { $(id).classList.add('open'); }
 function closeModal(id) { $(id).classList.remove('open'); }
 document.querySelectorAll('[data-close]').forEach(b => {
   b.onclick = () => closeModal(b.dataset.close);
 });
 
-// Auto-start
 bootApp();
 </script>
 </body>
