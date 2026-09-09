@@ -1,512 +1,243 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="referrer" content="strict-origin-when-cross-origin">
-<title>TDR Revision Hub — Prototype v2</title>
+<title>TDR Revision Hub</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
 <style>
-  :root{
-    --bg:#14161A; --panel:#1C1F26; --panel-2:#21242C; --border:#2A2E38;
-    --text:#E8E6E1; --text-dim:#8B8F98; --text-faint:#5B6070;
-    --amber:#E8A33D; --amber-dim:#6b5324;
-    --teal:#3E7A72; --teal-dim:#24413c;
-    --danger:#C4634A; --danger-dim:#4a2a26;
-    --violet:#7C8AE0; --violet-dim:#2f3560;
-    --radius:4px;
-    --mono:'SF Mono','Roboto Mono','Courier New',monospace;
-    --sans:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;
+  :root {
+    --bg: #F8F9FA;
+    --surface: #FFFFFF;
+    --surface-hover: #F1F3F5;
+    --border: #E9ECEF;
+    --border-dark: #CED4DA;
+    --text-main: #1A1D20;
+    --text-muted: #6C757D;
+    --text-faint: #ADB5BD;
+    --brand-primary: #0D6EFD;
+    --brand-amber: #F59E0B;
+    --brand-teal: #10B981;
+    --brand-danger: #EF4444;
+    --brand-purple: #6366F1;
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --radius-lg: 14px;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.02);
+    --shadow-card: 0 4px 12px rgba(0,0,0,0.03), 0 1px 3px rgba(0,0,0,0.02);
+    --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
   }
-  *{ box-sizing:border-box; margin:0; padding:0; }
-  html,body{ height:100%; }
-  body{ background:var(--bg); color:var(--text); font-family:var(--sans);
-        font-size:14px; line-height:1.5; -webkit-font-smoothing:antialiased; }
-  button{ font-family:inherit; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text-main); font-family: var(--font-sans); font-size: 13.5px; line-height: 1.5; }
+  button, input, select { font-family: inherit; }
 
-  .btn{ padding:7px 14px; border-radius:var(--radius); border:1px solid var(--amber);
-        background:transparent; color:var(--amber); font-size:12.5px; font-weight:600; cursor:pointer; }
-  .btn:hover{ background:var(--amber-dim); }
-  .btn:disabled{ opacity:.35; cursor:not-allowed; }
-  .btn-ghost{ border-color:var(--border); color:var(--text-dim); }
-  .btn-ghost:hover{ background:var(--panel-2); color:var(--text); }
-  .btn-approve{ border-color:var(--teal); color:var(--teal); }
-  .btn-approve:hover{ background:var(--teal-dim); }
-  .btn-sm{ padding:4px 10px; font-size:11.5px; }
-  .input{ background:var(--panel-2); border:1px solid var(--border); color:var(--text);
-          padding:8px 10px; border-radius:var(--radius); font-size:13px; width:100%; }
-  .input:focus{ outline:none; border-color:var(--amber); }
-  select.input{ cursor:pointer; }
-  .badge{ font-size:10.5px; padding:2px 7px; border-radius:10px; font-weight:600; display:inline-block; }
-  .badge-review{ background:var(--amber-dim); color:var(--amber); }
-  .badge-approved{ background:var(--teal-dim); color:var(--teal); }
-  .badge-revision{ background:var(--danger-dim); color:var(--danger); }
-  .badge-draft{ background:#2A2E38; color:var(--text-dim); font-family:var(--mono); }
-  .field-label{ font-size:12px; color:var(--text-dim); margin-bottom:6px; display:block; }
-  .logo-mark{ width:22px; height:22px; border:1.5px solid var(--amber); border-radius:2px;
-              position:relative; flex-shrink:0; }
-  .logo-mark::after{ content:''; position:absolute; top:50%; left:50%; width:6px; height:6px;
-                     background:var(--amber); border-radius:50%; transform:translate(-50%,-50%); }
-  ::-webkit-scrollbar{ width:8px; }
-  ::-webkit-scrollbar-track{ background:transparent; }
-  ::-webkit-scrollbar-thumb{ background:#2E323C; border-radius:4px; }
+  /* Buttons & Inputs */
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 7px 14px; border-radius: var(--radius-sm); border: 1px solid var(--border-dark); background: var(--surface); color: var(--text-main); font-size: 12.5px; font-weight: 500; cursor: pointer; transition: all .15s ease; box-shadow: var(--shadow-sm); }
+  .btn:hover { background: var(--surface-hover); border-color: #ADB5BD; }
+  .btn-primary { background: var(--brand-primary); border-color: var(--brand-primary); color: #fff; }
+  .btn-primary:hover { background: #0b5ed7; border-color: #0a58ca; }
+  .btn-approve { background: var(--brand-teal); border-color: var(--brand-teal); color: #fff; }
+  .btn-approve:hover { background: #059669; }
+  .btn-ghost { background: transparent; border-color: transparent; box-shadow: none; color: var(--text-muted); }
+  .btn-ghost:hover { background: var(--surface-hover); color: var(--text-main); }
+  .btn-sm { padding: 4px 9px; font-size: 11.5px; }
+  .btn:disabled { opacity: 0.45; cursor: not-allowed; }
 
-  /* ---------- login ---------- */
-  #loginScreen{ height:100vh; display:flex; align-items:center; justify-content:center; }
-  .login-card{ width:360px; background:var(--panel); border:1px solid var(--border);
-               border-radius:6px; padding:28px; }
-  .login-brand{ display:flex; align-items:center; gap:10px; margin-bottom:6px; }
-  .login-card h1{ font-size:16px; font-weight:600; }
-  .login-sub{ color:var(--text-faint); font-size:12.5px; margin-bottom:22px; }
-  .login-field{ margin-bottom:14px; }
-  .login-error{ color:var(--danger); font-size:12px; margin-bottom:12px; display:none; }
-  .login-error.show{ display:block; }
-  .demo-accounts{ margin-top:18px; padding-top:16px; border-top:1px solid var(--border);
-                  font-size:11.5px; color:var(--text-faint); line-height:1.8; }
-  .demo-accounts code{ font-family:var(--mono); color:var(--text-dim); cursor:pointer; }
-  .demo-accounts code:hover{ color:var(--amber); }
+  .input { background: var(--surface); border: 1px solid var(--border-dark); color: var(--text-main); padding: 8px 11px; border-radius: var(--radius-sm); font-size: 13px; width: 100%; transition: border-color .15s; }
+  .input:focus { outline: none; border-color: var(--brand-primary); box-shadow: 0 0 0 3px rgba(13,110,253,0.12); }
+  select.input { cursor: pointer; }
+  .field-label { font-size: 12px; font-weight: 600; color: var(--text-muted); margin-bottom: 5px; display: block; }
 
-  /* ---------- topbar ---------- */
-  .topbar{ height:48px; display:flex; align-items:center; justify-content:space-between;
-           padding:0 16px; border-bottom:1px solid var(--border); background:var(--panel); }
-  .topbar-left{ display:flex; align-items:center; gap:10px; min-width:0; }
-  .topbar-title{ font-weight:600; font-size:13px; }
-  .topbar-sub{ color:var(--text-faint); font-size:12px; }
-  .topbar-right{ display:flex; align-items:center; gap:12px; font-size:12px; color:var(--text-dim); }
-  .role-chip{ font-size:10.5px; padding:2px 8px; border-radius:10px; font-weight:600; }
-  .role-chip.reviewer{ background:var(--amber-dim); color:var(--amber); }
-  .role-chip.editor{ background:#26333d; color:#79a8c0; }
-  .role-chip.master{ background:var(--violet-dim); color:var(--violet); }
-  .back-btn{ display:flex; align-items:center; gap:6px; border:1px solid var(--border);
-             background:var(--panel-2); color:var(--text-dim); padding:5px 11px;
-             border-radius:var(--radius); font-size:12px; cursor:pointer; }
-  .back-btn:hover{ color:var(--text); border-color:var(--text-faint); }
+  /* Badges */
+  .tag { font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 20px; display: inline-flex; align-items: center; gap: 4px; }
+  .tag-review { background: #FEF3C7; color: #B45309; }
+  .tag-approved { background: #D1FAE5; color: #065F46; }
+  .tag-revision { background: #FEE2E2; color: #991B1B; }
+  .tag-draft { background: #E9ECEF; color: var(--text-muted); font-family: var(--font-mono); font-size: 10.5px; }
 
-  /* ---------- notif bell ---------- */
-  .bell-wrap{ position:relative; }
-  .bell{ width:30px; height:30px; border:1px solid var(--border); background:var(--panel-2);
-         border-radius:var(--radius); cursor:pointer; display:flex; align-items:center;
-         justify-content:center; font-size:14px; color:var(--text-dim); }
-  .bell:hover{ color:var(--text); border-color:var(--text-faint); }
-  .bell-dot{ position:absolute; top:-4px; right:-4px; min-width:16px; height:16px;
-             background:var(--danger); color:#fff; border-radius:8px; font-size:10px;
-             font-weight:700; display:none; align-items:center; justify-content:center; padding:0 4px; }
-  .bell-dot.show{ display:flex; }
-  .notif-panel{ display:none; position:absolute; top:38px; right:0; width:330px;
-                max-height:400px; overflow-y:auto; background:var(--panel);
-                border:1px solid var(--border); border-radius:6px; z-index:80;
-                box-shadow:0 8px 28px rgba(0,0,0,.5); }
-  .notif-panel.open{ display:block; }
-  .notif-head{ padding:11px 14px; border-bottom:1px solid var(--border);
-               display:flex; justify-content:space-between; align-items:center; }
-  .notif-head h4{ font-size:12.5px; font-weight:600; }
-  .notif-item{ padding:11px 14px; border-bottom:1px solid #22252d; cursor:pointer; display:flex; gap:9px; }
-  .notif-item:hover{ background:var(--panel-2); }
-  .notif-item.unread{ background:rgba(232,163,61,.06); }
-  .notif-icon{ width:7px; height:7px; border-radius:50%; margin-top:6px; flex-shrink:0; }
-  .notif-body{ font-size:12.5px; line-height:1.45; }
-  .notif-meta{ font-size:11px; color:var(--text-faint); margin-top:3px; }
-  .notif-empty{ padding:28px 14px; text-align:center; color:var(--text-faint); font-size:12.5px; }
+  /* Login */
+  #loginScreen { height: 100vh; display: flex; align-items: center; justify-content: center; background: var(--bg); }
+  .login-box { width: 360px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 32px; box-shadow: var(--shadow-card); }
+  .login-box h1 { font-size: 19px; font-weight: 700; margin-bottom: 4px; }
+  .login-sub { color: var(--text-muted); font-size: 13px; margin-bottom: 24px; }
+  .login-field { margin-bottom: 16px; }
+  .login-error { color: var(--brand-danger); font-size: 12px; margin-bottom: 12px; display: none; }
 
-  /* ---------- dashboard ---------- */
-  #dashboard{ display:none; height:100vh; flex-direction:column; }
-  .dash-body{ flex:1; overflow-y:auto; padding:28px 32px; }
-  .dash-head{ display:flex; align-items:flex-end; justify-content:space-between;
-              margin-bottom:20px; max-width:1040px; }
-  .dash-head h2{ font-size:19px; font-weight:600; }
-  .dash-head p{ font-size:12.5px; color:var(--text-faint); margin-top:2px; }
-  .dash-actions{ display:flex; gap:8px; }
+  /* Navigation Bar */
+  .topbar { height: 52px; background: var(--surface); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 24px; }
+  .brand-group { display: flex; align-items: center; gap: 10px; }
+  .brand-logo { width: 24px; height: 24px; background: var(--text-main); border-radius: 5px; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 700; font-size: 13px; }
+  .brand-title { font-weight: 600; font-size: 14px; }
+  .topbar-right { display: flex; align-items: center; gap: 14px; }
 
-  .project-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(310px,1fr));
-                 gap:14px; max-width:1040px; }
-  .project-card{ background:var(--panel); border:1px solid var(--border); border-radius:6px;
-                 padding:16px; cursor:pointer; }
-  .project-card:hover{ border-color:var(--text-faint); }
-  .pc-top{ display:flex; gap:12px; align-items:flex-start; margin-bottom:14px; }
-  .pc-logo{ width:42px; height:42px; border-radius:6px; flex-shrink:0; overflow:hidden;
-            display:flex; align-items:center; justify-content:center;
-            font-weight:700; font-size:16px; background:var(--panel-2); }
-  .pc-logo img{ width:100%; height:100%; object-fit:cover; }
-  .pc-name{ font-size:14px; font-weight:600; line-height:1.3; }
-  .pc-client{ font-size:11.5px; color:var(--text-faint); margin-top:2px; }
-  .pc-role{ margin-left:auto; flex-shrink:0; }
+  /* Dashboard Cards (Notion Gallery Style) */
+  #dashboard { display: none; min-height: 100vh; flex-direction: column; }
+  .dash-container { flex: 1; padding: 36px 48px; max-width: 1400px; width: 100%; margin: 0 auto; }
+  .dash-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px; }
+  .dash-header h2 { font-size: 24px; font-weight: 700; letter-spacing: -0.02em; }
+  
+  .gallery-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+  .gallery-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); overflow: hidden; cursor: pointer; transition: transform .15s, box-shadow .15s; display: flex; flex-direction: column; box-shadow: var(--shadow-sm); }
+  .gallery-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-card); border-color: var(--border-dark); }
+  
+  .card-banner { height: 120px; display: flex; align-items: center; justify-content: center; position: relative; padding: 16px; }
+  .card-banner img { max-height: 75%; max-width: 75%; object-fit: contain; }
+  .card-banner-text { font-size: 20px; font-weight: 700; color: #fff; text-shadow: 0 1px 3px rgba(0,0,0,0.3); }
+  .card-edit-btn { position: absolute; top: 8px; right: 8px; background: rgba(255,255,255,0.85); border-radius: 4px; border: none; padding: 4px 8px; font-size: 11px; font-weight: 600; color: var(--text-main); opacity: 0; transition: opacity .15s; }
+  .gallery-card:hover .card-edit-btn { opacity: 1; }
+  .card-edit-btn:hover { background: #fff; }
 
-  .pc-progress-label{ display:flex; justify-content:space-between; font-size:11.5px;
-                      color:var(--text-dim); margin-bottom:6px; }
-  .pc-bar{ height:5px; background:var(--border); border-radius:3px; overflow:hidden; }
-  .pc-bar-fill{ height:100%; background:var(--teal); border-radius:3px; }
-  .pc-foot{ display:flex; gap:14px; margin-top:12px; font-size:11.5px; color:var(--text-faint); }
-  .pc-foot strong{ color:var(--text-dim); font-weight:600; }
-  .pc-open{ color:var(--amber); }
+  .card-content { padding: 14px 16px; flex: 1; display: flex; flex-direction: column; }
+  .card-title { font-size: 14.5px; font-weight: 600; margin-bottom: 2px; }
+  .card-client { font-size: 12px; color: var(--text-muted); margin-bottom: 12px; }
+  .card-meta-row { margin-top: auto; display: flex; justify-content: space-between; align-items: center; font-size: 11.5px; color: var(--text-muted); border-top: 1px solid var(--border); padding-top: 10px; }
+  .card-deadline { display: flex; align-items: center; gap: 4px; font-weight: 500; }
 
-  .dash-empty{ max-width:1040px; border:1px dashed var(--border); border-radius:6px;
-               padding:44px; text-align:center; color:var(--text-faint); font-size:13px; }
+  /* Workspace Layout */
+  #workspace { display: none; height: 100vh; flex-direction: column; background: var(--surface); }
+  .ws-body { flex: 1; display: grid; grid-template-columns: 260px 1fr 370px; min-height: 0; }
 
-  /* ---------- workspace ---------- */
-  #workspace{ display:none; height:100vh; flex-direction:column; }
-  .ws-body{ flex:1; display:grid; grid-template-columns:265px 1fr 350px; min-height:0; }
+  .ws-sidebar { border-right: 1px solid var(--border); display: flex; flex-direction: column; background: var(--bg); }
+  .ws-sidebar-head { padding: 14px 16px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; font-weight: 600; font-size: 13px; }
+  .video-list { flex: 1; overflow-y: auto; padding: 8px; }
+  .video-nav-item { padding: 10px 12px; border-radius: var(--radius-sm); margin-bottom: 4px; cursor: pointer; transition: background .12s; }
+  .video-nav-item:hover { background: var(--surface-hover); }
+  .video-nav-item.active { background: var(--surface); box-shadow: var(--shadow-sm); border: 1px solid var(--border); font-weight: 600; }
+  
+  .ws-center { display: flex; flex-direction: column; background: #000; overflow: hidden; }
+  .ws-top-controls { padding: 10px 20px; background: var(--surface); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+  .draft-select-group { display: flex; align-items: center; gap: 10px; }
 
-  .sidebar{ border-right:1px solid var(--border); background:var(--panel);
-            display:flex; flex-direction:column; overflow:hidden; }
-  .sidebar-head{ padding:13px 16px 10px; border-bottom:1px solid var(--border);
-                 display:flex; align-items:center; justify-content:space-between; }
-  .sidebar-head h3{ font-size:12.5px; font-weight:600; }
-  .add-mini{ border:1px solid var(--border); background:var(--panel-2); color:var(--text-dim);
-             width:24px; height:24px; border-radius:var(--radius); cursor:pointer; font-size:14px;
-             display:flex; align-items:center; justify-content:center; }
-  .add-mini:hover{ border-color:var(--amber); color:var(--amber); }
-  .video-list{ flex:1; overflow-y:auto; }
-  .video-item{ padding:11px 16px; cursor:pointer; border-left:2px solid transparent;
-               display:flex; flex-direction:column; gap:5px; }
-  .video-item:hover{ background:var(--panel-2); }
-  .video-item.active{ background:var(--panel-2); border-left-color:var(--amber); }
-  .video-item-title{ font-size:13px; }
-  .video-item-meta{ display:flex; align-items:center; gap:7px; flex-wrap:wrap; }
-  .video-item-count{ font-size:11px; color:var(--text-faint); }
-  .sidebar-empty{ padding:24px 16px; font-size:12.5px; color:var(--text-faint);
-                  text-align:center; line-height:1.6; }
-  .members-box{ border-top:1px solid var(--border); padding:12px 16px; }
-  .members-box h4{ font-size:11px; color:var(--text-faint); font-weight:600; margin-bottom:8px; }
-  .member-row{ display:flex; align-items:center; gap:8px; margin-bottom:6px; font-size:12px; }
-  .member-avatar{ width:20px; height:20px; border-radius:50%; font-size:9.5px; font-weight:700;
-                  display:flex; align-items:center; justify-content:center; flex-shrink:0; color:#14161A; }
+  .player-frame-wrap { flex: 1; position: relative; background: #000; display: flex; align-items: center; justify-content: center; }
+  #ytPlayer { width: 100%; height: 100%; }
+  .player-shield { position: absolute; inset: 0; z-index: 5; cursor: pointer; }
 
-  .center{ display:flex; flex-direction:column; background:var(--bg); overflow:hidden; }
-  .player-header{ padding:12px 20px; border-bottom:1px solid var(--border);
-                  display:flex; align-items:center; justify-content:space-between; gap:14px; }
-  .player-title{ font-size:14px; font-weight:600; }
-  .player-hint{ font-size:11.5px; color:var(--text-faint); margin-top:2px; }
-  .player-stage{ flex:1; display:flex; align-items:center; justify-content:center; min-height:0;
-    background:repeating-linear-gradient(45deg,#101216,#101216 10px,#131519 10px,#131519 20px); }
-  .player-frame-wrap{ width:80%; max-width:880px; aspect-ratio:16/9; background:#000;
-                      border:1px solid var(--border); position:relative; overflow:hidden; }
-  #ytPlayer{ width:100%; height:100%; }
+  /* Transport & Scrubber */
+  .transport { padding: 12px 20px 14px; background: var(--surface); border-top: 1px solid var(--border); }
+  .scrubber-row { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+  .time-code { font-family: var(--font-mono); font-size: 12px; color: var(--text-muted); }
+  .scrubber { flex: 1; height: 18px; position: relative; cursor: pointer; }
+  .scrubber-track { position: absolute; top: 50%; left: 0; right: 0; height: 4px; background: var(--border-dark); transform: translateY(-50%); border-radius: 2px; }
+  .scrubber-fill { position: absolute; top: 50%; left: 0; height: 4px; background: var(--text-main); transform: translateY(-50%); border-radius: 2px; pointer-events: none; }
+  .scrubber-playhead { position: absolute; top: 50%; width: 12px; height: 12px; background: var(--text-main); border-radius: 50%; transform: translate(-50%, -50%); pointer-events: none; }
+  .stamp-marker { position: absolute; top: 50%; width: 8px; height: 8px; border-radius: 50%; transform: translate(-50%, -50%); cursor: pointer; border: 1.5px solid #fff; z-index: 2; }
 
-  /* Lapisan penutup: mencegah kursor menyentuh iframe YouTube, sehingga
-     judul, logo channel, dan tombol share tidak pernah muncul. Sekaligus
-     jadi area klik untuk play/pause. */
-  .player-shield{ position:absolute; inset:0; z-index:5; cursor:pointer; background:transparent; }
-  .player-shield::after{
-    content:''; position:absolute; inset:0;
-    background:radial-gradient(circle at center, rgba(0,0,0,.28) 0%, transparent 55%);
-    opacity:0; transition:opacity .15s;
-  }
-  .player-shield.paused::after{ opacity:1; }
-  .shield-play{
-    position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
-    width:62px; height:62px; border-radius:50%; border:2px solid rgba(255,255,255,.85);
-    display:none; align-items:center; justify-content:center; pointer-events:none;
-  }
-  .player-shield.paused .shield-play{ display:flex; }
-  .shield-play::after{
-    content:''; border-style:solid; border-width:11px 0 11px 17px;
-    border-color:transparent transparent transparent rgba(255,255,255,.9); margin-left:4px;
-  }
-  .stage-empty{ color:var(--text-faint); font-size:13px; text-align:center; max-width:300px; line-height:1.6; }
+  /* Right Review Panel */
+  .ws-panel { border-left: 1px solid var(--border); display: flex; flex-direction: column; background: var(--surface); }
+  .ws-panel-head { padding: 14px 18px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: baseline; font-weight: 600; }
+  .stamps-list { flex: 1; overflow-y: auto; padding: 12px; }
+  
+  .stamp-card { border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px; margin-bottom: 10px; background: var(--surface); box-shadow: var(--shadow-sm); }
+  .stamp-card.archived-draft { opacity: 0.7; background: #F8F9FA; border-style: dashed; }
+  .stamp-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+  .stamp-timestamp { font-family: var(--font-mono); font-size: 11.5px; font-weight: 600; color: var(--brand-primary); cursor: pointer; }
+  .stamp-note { font-size: 13px; margin-bottom: 8px; color: var(--text-main); }
+  
+  /* Composer */
+  .composer { display: none; padding: 12px 18px; border-top: 1px solid var(--border); background: var(--surface); gap: 8px; }
+  .composer.open { display: flex; }
 
-  .transport{ padding:12px 20px 15px; border-top:1px solid var(--border); background:var(--panel); }
-  .scrubber-row{ display:flex; align-items:center; gap:10px; margin-bottom:10px; }
-  .time-code{ font-family:var(--mono); font-size:12px; color:var(--text-dim); min-width:48px; }
-  .scrubber{ flex:1; height:22px; position:relative; cursor:pointer; }
-  .scrubber-track{ position:absolute; top:50%; left:0; right:0; height:3px; background:var(--border);
-                   transform:translateY(-50%); border-radius:2px; }
-  .scrubber-fill{ position:absolute; top:50%; left:0; height:3px; background:var(--text-dim);
-                  transform:translateY(-50%); border-radius:2px; pointer-events:none; }
-  .scrubber-playhead{ position:absolute; top:50%; width:10px; height:10px; background:var(--text);
-                      border-radius:50%; transform:translate(-50%,-50%); pointer-events:none; }
-  .stamp-marker{ position:absolute; top:50%; width:8px; height:8px; border-radius:50%;
-                 transform:translate(-50%,-50%); cursor:pointer; border:1.5px solid var(--bg); z-index:2; }
-
-  .controls-row{ display:flex; align-items:center; justify-content:space-between; gap:12px; }
-  .controls-left{ display:flex; align-items:center; gap:8px; }
-  .icon-btn{ width:30px; height:30px; border-radius:var(--radius); border:1px solid var(--border);
-             background:var(--panel-2); color:var(--text-dim); display:flex; align-items:center;
-             justify-content:center; cursor:pointer; font-size:13px; }
-  .icon-btn:hover{ border-color:var(--text-faint); color:var(--text); }
-  .color-picker{ display:flex; gap:6px; align-items:center; margin-left:6px; }
-  .swatch{ width:16px; height:16px; border-radius:50%; cursor:pointer; border:2px solid transparent;
-           position:relative; }
-  .swatch.selected{ border-color:var(--text); }
-  .swatch-key{ position:absolute; top:-16px; left:50%; transform:translateX(-50%);
-               font-family:var(--mono); font-size:9.5px; color:var(--text-faint); }
-
-  .kbd{ display:inline-block; font-family:var(--mono); font-size:10.5px;
-        padding:1px 5px; border:1px solid var(--border); border-bottom-width:2px;
-        border-radius:3px; background:var(--panel-2); color:var(--text-dim); }
-  .shortcut-btn{ width:30px; height:30px; border:1px solid var(--border); background:var(--panel-2);
-                 border-radius:var(--radius); cursor:pointer; display:flex; align-items:center;
-                 justify-content:center; font-size:12px; color:var(--text-faint); }
-  .shortcut-btn:hover{ color:var(--text); border-color:var(--text-faint); }
-  .shortcut-row{ display:flex; align-items:center; gap:10px; padding:7px 0;
-                 border-bottom:1px solid #22252d; font-size:12.5px; }
-  .shortcut-row:last-child{ border-bottom:none; }
-  .shortcut-keys{ width:110px; flex-shrink:0; display:flex; gap:4px; }
-  .composer-color{ width:10px; height:10px; border-radius:50%; flex-shrink:0; align-self:center; }
-
-  .composer{ display:none; padding:10px 20px; border-top:1px solid var(--border);
-             background:var(--panel-2); gap:8px; position:relative; }
-  .composer.open{ display:flex; }
-
-  /* mention dropdown */
-  .mention-pop{ display:none; position:absolute; bottom:calc(100% + 6px); left:20px;
-                width:230px; background:var(--panel); border:1px solid var(--border);
-                border-radius:6px; z-index:90; overflow:hidden;
-                box-shadow:0 6px 22px rgba(0,0,0,.5); }
-  .mention-pop.open{ display:block; }
-  .mention-opt{ padding:8px 12px; cursor:pointer; display:flex; align-items:center; gap:8px; font-size:12.5px; }
-  .mention-opt:hover, .mention-opt.active{ background:var(--panel-2); }
-  .mention-opt-role{ margin-left:auto; font-size:10.5px; color:var(--text-faint); }
-
-  /* ---------- stamps panel ---------- */
-  .stamps-panel{ border-left:1px solid var(--border); background:var(--panel);
-                 display:flex; flex-direction:column; overflow:hidden; }
-  .stamps-panel-head{ padding:13px 16px 10px; border-bottom:1px solid var(--border);
-                      display:flex; align-items:baseline; justify-content:space-between; }
-  .stamps-panel-head h3{ font-size:12.5px; font-weight:600; }
-  .stamps-count{ font-size:11px; color:var(--text-faint); }
-  .stamps-list{ flex:1; overflow-y:auto; }
-  .stamps-empty{ padding:26px 16px; color:var(--text-faint); font-size:12.5px;
-                 text-align:center; line-height:1.6; }
-  .stamp-item{ padding:11px 16px; border-bottom:1px solid #22252d; }
-  .stamp-item.done{ opacity:.55; }
-  .stamp-main{ display:flex; gap:10px; cursor:pointer; }
-  .stamp-dot{ width:9px; height:9px; border-radius:50%; margin-top:5px; flex-shrink:0; }
-  .stamp-body{ flex:1; min-width:0; }
-  .stamp-top{ display:flex; align-items:center; justify-content:space-between; gap:8px; }
-  .stamp-time{ font-family:var(--mono); font-size:12px; color:var(--amber); }
-  .stamp-author{ font-size:11px; color:var(--text-faint); }
-  .stamp-note{ font-size:13px; margin-top:3px; word-wrap:break-word; }
-  .stamp-note.done-text{ text-decoration:line-through; color:var(--text-faint); }
-  .mention-tag{ color:var(--violet); font-weight:600; }
-  .stamp-actions{ display:flex; align-items:center; gap:8px; margin-top:8px; flex-wrap:wrap; }
-  .stamp-toggle{ font-size:11px; padding:3px 9px; border-radius:10px; cursor:pointer;
-                 border:1px solid var(--border); color:var(--text-dim); }
-  .stamp-toggle.is-open{ border-color:var(--amber-dim); color:var(--amber); }
-  .stamp-toggle.is-done{ border-color:var(--teal-dim); color:var(--teal); }
-  .stamp-toggle.locked{ cursor:not-allowed; opacity:.6; }
-  .reply-link{ font-size:11px; color:var(--text-faint); cursor:pointer; }
-  .reply-link:hover{ color:var(--text-dim); }
-
-  .replies{ margin-top:9px; margin-left:19px; padding-left:11px; border-left:1px solid var(--border); }
-  .reply{ margin-bottom:8px; }
-  .reply-top{ display:flex; align-items:baseline; gap:7px; }
-  .reply-author{ font-size:11.5px; font-weight:600; }
-  .reply-time{ font-size:10.5px; color:var(--text-faint); }
-  .reply-body{ font-size:12.5px; color:var(--text-dim); margin-top:1px; word-wrap:break-word; }
-  .reply-form{ display:none; margin-top:8px; margin-left:19px; position:relative; }
-  .reply-form.open{ display:block; }
-  .reply-form-row{ display:flex; gap:6px; }
-  .reply-input{ flex:1; background:var(--panel-2); border:1px solid var(--border);
-                color:var(--text); padding:6px 9px; border-radius:var(--radius); font-size:12.5px; }
-  .reply-input:focus{ outline:none; border-color:var(--amber); }
-  .reply-hint{ font-size:10.5px; color:var(--text-faint); margin-top:4px; }
-
-  .stamps-footer{ padding:10px 16px; border-top:1px solid var(--border);
-                  font-size:11px; color:var(--text-faint); }
-
-  /* ---------- modal ---------- */
-  .modal-backdrop{ display:none; position:fixed; inset:0; background:rgba(10,11,14,.75);
-                   align-items:center; justify-content:center; z-index:100; }
-  .modal-backdrop.open{ display:flex; }
-  .modal{ width:440px; max-height:86vh; overflow-y:auto; background:var(--panel);
-          border:1px solid var(--border); border-radius:6px; padding:22px; }
-  .modal.wide{ width:560px; }
-  .modal h3{ font-size:15px; font-weight:600; margin-bottom:4px; }
-  .modal .modal-sub{ font-size:12px; color:var(--text-faint); margin-bottom:18px; }
-  .modal-field{ margin-bottom:14px; }
-  .modal-actions{ display:flex; justify-content:flex-end; gap:8px; margin-top:20px; }
-
-  .assign-row{ display:flex; align-items:center; gap:10px; padding:9px 0;
-               border-bottom:1px solid #22252d; }
-  .assign-name{ flex:1; font-size:13px; }
-  .assign-email{ font-size:11px; color:var(--text-faint); }
-  .assign-select{ width:135px; }
-
-  /* ---------- dashboard 2-column with task panel ---------- */
-  .dash-layout{ display:grid; grid-template-columns:1fr 330px; gap:26px;
-                max-width:1420px; align-items:start; }
-  @media (max-width:1100px){ .dash-layout{ grid-template-columns:1fr; } }
-
-  .task-panel{ background:var(--panel); border:1px solid var(--border); border-radius:6px;
-               position:sticky; top:0; }
-  .task-head{ padding:13px 15px; border-bottom:1px solid var(--border);
-              display:flex; align-items:center; justify-content:space-between; cursor:pointer; }
-  .task-head h3{ font-size:13px; font-weight:600; }
-  .task-head-count{ font-size:11px; color:var(--text-faint); }
-  .task-caret{ color:var(--text-faint); font-size:11px; transition:transform .15s; }
-  .task-panel.collapsed .task-caret{ transform:rotate(-90deg); }
-  .task-panel.collapsed .task-list{ display:none; }
-  .task-list{ max-height:calc(100vh - 190px); overflow-y:auto; }
-  .task-group{ padding:9px 15px 4px; font-size:10.5px; color:var(--text-faint); font-weight:600; }
-  .task-item{ padding:10px 15px; border-bottom:1px solid #22252d; cursor:pointer; display:flex; gap:9px; }
-  .task-item:hover{ background:var(--panel-2); }
-  .task-item.mine{ background:rgba(124,138,224,.07); }
-  .task-dot{ width:8px; height:8px; border-radius:50%; margin-top:5px; flex-shrink:0; }
-  .task-body{ flex:1; min-width:0; }
-  .task-note{ font-size:12.5px; line-height:1.4; }
-  .task-meta{ font-size:11px; color:var(--text-faint); margin-top:3px;
-              display:flex; gap:7px; align-items:center; flex-wrap:wrap; }
-  .task-time{ font-family:var(--mono); color:var(--amber); }
-  .task-empty{ padding:26px 15px; text-align:center; color:var(--text-faint);
-               font-size:12.5px; line-height:1.6; }
-  .mine-flag{ font-size:9.5px; padding:1px 6px; border-radius:8px;
-              background:var(--violet-dim); color:var(--violet); font-weight:600; }
-
-  /* project card edit */
-  .pc-edit{ opacity:0; border:1px solid var(--border); background:var(--panel-2);
-            color:var(--text-dim); width:24px; height:24px; border-radius:var(--radius);
-            cursor:pointer; font-size:11px; display:flex; align-items:center;
-            justify-content:center; flex-shrink:0; }
-  .project-card:hover .pc-edit{ opacity:1; }
-  .pc-edit:hover{ border-color:var(--amber); color:var(--amber); }
-
-  /* avatars with photo */
-  .member-avatar{ overflow:hidden; }
-  .member-avatar img{ width:100%; height:100%; object-fit:cover; }
-
-  .avatar-preview{ width:64px; height:64px; border-radius:50%; overflow:hidden;
-                   display:flex; align-items:center; justify-content:center;
-                   font-size:24px; font-weight:700; color:#14161A; flex-shrink:0; }
-  .avatar-preview img{ width:100%; height:100%; object-fit:cover; }
-  .avatar-row{ display:flex; gap:16px; align-items:center; margin-bottom:18px; }
-
-  .settings-btn{ width:30px; height:30px; border:1px solid var(--border); background:var(--panel-2);
-                 border-radius:var(--radius); cursor:pointer; display:flex; align-items:center;
-                 justify-content:center; font-size:13px; color:var(--text-dim); }
-  .settings-btn:hover{ color:var(--text); border-color:var(--text-faint); }
-
-  .perm-box{ border:1px solid var(--border); border-radius:var(--radius);
-             padding:12px; margin-top:6px; background:var(--panel-2); }
-  .perm-status{ font-size:12px; margin-bottom:8px; }
-  .perm-note{ font-size:11.5px; color:var(--text-faint); line-height:1.55; margin-top:8px; }
-
-  .flag{ position:fixed; bottom:12px; left:50%; transform:translateX(-50%); background:#1C1F26;
-         border:1px solid var(--border); color:var(--text-faint); font-size:11px;
-         padding:5px 12px; border-radius:20px; z-index:60; pointer-events:none; }
+  /* Modal */
+  .modal-backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.45); align-items: center; justify-content: center; z-index: 100; backdrop-filter: blur(2px); }
+  .modal-backdrop.open { display: flex; }
+  .modal { width: 460px; max-height: 90vh; overflow-y: auto; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); }
+  .modal h3 { font-size: 16px; font-weight: 700; margin-bottom: 4px; }
+  .modal-sub { font-size: 12px; color: var(--text-muted); margin-bottom: 18px; }
+  .modal-field { margin-bottom: 14px; }
+  .modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 22px; }
 </style>
 </head>
 <body>
 
 <!-- ================= LOGIN ================= -->
 <div id="loginScreen">
-  <div class="login-card">
-    <div class="login-brand">
-      <div class="logo-mark"></div>
-      <h1>TDR Revision Hub</h1>
-    </div>
-    <p class="login-sub">Masuk dengan akun kamu</p>
-
+  <div class="login-box">
+    <h1>TDR Revision Hub</h1>
+    <p class="login-sub">Sign in with your workspace credentials</p>
     <div class="login-field">
       <label class="field-label">Email</label>
-      <input type="email" class="input" id="loginEmail" placeholder="nama@tdrfilms.com" autocomplete="username">
+      <input type="email" class="input" id="loginEmail" placeholder="name@tdrfilms.com">
     </div>
     <div class="login-field">
       <label class="field-label">Password</label>
-      <input type="password" class="input" id="loginPass" placeholder="••••••••" autocomplete="current-password">
+      <input type="password" class="input" id="loginPass" placeholder="••••••••">
     </div>
-    <div class="login-error" id="loginError">Email atau password salah.</div>
-    <div id="configWarning" style="display:none;background:var(--danger-dim);color:var(--danger);
-         padding:11px 13px;border-radius:4px;font-size:12px;line-height:1.6;margin-bottom:14px;">
-      Belum dikonfigurasi. Buka file ini di editor teks, cari
-      <b>PASTE_PROJECT_URL_DI_SINI</b>, dan isi Project URL serta anon key
-      dari Supabase Dashboard → Settings → API.
-    </div>
-    <button class="btn" id="loginBtn" style="width:100%">Masuk</button>
-    </div>
+    <div class="login-error" id="loginError">Invalid credentials.</div>
+    <button class="btn btn-primary" id="loginBtn" style="width: 100%">Sign In</button>
+  </div>
 </div>
 
 <!-- ================= DASHBOARD ================= -->
 <div id="dashboard">
   <div class="topbar">
-    <div class="topbar-left">
-      <div class="logo-mark"></div>
-      <div class="topbar-title">TDR Revision Hub</div>
-      <div class="topbar-sub">/ Project</div>
+    <div class="brand-group">
+      <div class="brand-logo">T</div>
+      <div class="brand-title">Revision Hub</div>
     </div>
     <div class="topbar-right">
-      <div class="bell-wrap">
-        <div class="bell" id="dashBell">🔔<span class="bell-dot" id="dashBellDot">0</span></div>
-        <div class="notif-panel" id="dashNotifPanel"></div>
-      </div>
-      <div class="settings-btn" id="dashSettingsBtn" title="Pengaturan akun">⚙</div>
-      <span id="dashUserName">—</span>
-      <span class="role-chip" id="dashRoleChip">—</span>
-      <button class="back-btn" id="logoutBtn">Keluar</button>
+      <span id="dashUserName" style="font-weight: 600;">—</span>
+      <span class="tag tag-review" id="dashRoleChip">User</span>
+      <button class="btn btn-ghost btn-sm" id="logoutBtn">Sign out</button>
     </div>
   </div>
 
-  <div class="dash-body">
-    <div class="dash-layout">
+  <div class="dash-container">
+    <div class="dash-header">
       <div>
-        <div class="dash-head">
-          <div>
-            <h2>Project berjalan</h2>
-            <p id="dashSubline">Klik project untuk membuka draft dan revisinya</p>
-          </div>
-          <div class="dash-actions" id="dashActions"></div>
-        </div>
-        <div id="projectListWrap"></div>
+        <h2>Running Projects</h2>
+        <p style="color: var(--text-muted); font-size: 13px; margin-top: 4px;">Select a project to review drafts and timestamps</p>
       </div>
-
-      <div class="task-panel" id="taskPanel">
-        <div class="task-head" id="taskHead">
-          <h3>Revisi belum selesai</h3>
-          <div style="display:flex;align-items:center;gap:8px">
-            <span class="task-head-count" id="taskCount">0</span>
-            <span class="task-caret">▼</span>
-          </div>
-        </div>
-        <div class="task-list" id="taskList"></div>
-      </div>
+      <div id="dashActions"></div>
     </div>
+    <div class="gallery-grid" id="projectGrid"></div>
   </div>
 </div>
 
 <!-- ================= WORKSPACE ================= -->
 <div id="workspace">
   <div class="topbar">
-    <div class="topbar-left">
-      <button class="back-btn" id="backBtn">← Semua project</button>
-      <div class="topbar-title" id="wsProjectName">—</div>
-      <div class="topbar-sub" id="wsProjectClient"></div>
+    <div class="brand-group">
+      <button class="btn btn-ghost btn-sm" id="backBtn">← Projects</button>
+      <div style="font-weight: 600; font-size: 14px;" id="wsProjectName">—</div>
+      <span style="color: var(--text-muted); font-size: 12px;" id="wsProjectClient"></span>
     </div>
     <div class="topbar-right">
-      <div class="bell-wrap">
-        <div class="bell" id="wsBell">🔔<span class="bell-dot" id="wsBellDot">0</span></div>
-        <div class="notif-panel" id="wsNotifPanel"></div>
-      </div>
-      <div class="settings-btn" id="wsSettingsBtn" title="Pengaturan akun">⚙</div>
-      <span id="wsUserName">—</span>
-      <span class="role-chip" id="wsRoleChip">—</span>
+      <span class="tag tag-draft" id="wsDeadlineTag">No Deadline</span>
+      <span class="tag tag-review" id="wsRoleChip">—</span>
     </div>
   </div>
 
   <div class="ws-body">
-    <div class="sidebar">
-      <div class="sidebar-head">
-        <h3>Draft video</h3>
-        <button class="add-mini" id="addVideoBtn" title="Tambah draft baru">+</button>
+    <!-- Left: Video & Drafts List -->
+    <div class="ws-sidebar">
+      <div class="ws-sidebar-head">
+        <span>Videos</span>
+        <button class="btn btn-sm" id="addVideoBtn">+ New Video</button>
       </div>
-      <div class="video-list" id="videoList"></div>
-      <div class="members-box" id="membersBox"></div>
+      <div class="video-list" id="videoNavList"></div>
     </div>
 
-    <div class="center">
-      <div class="player-header">
-        <div>
-          <div class="player-title" id="playerTitle">Belum ada draft dipilih</div>
-          <div class="player-hint" id="playerHint">Tambah draft dari panel kiri untuk mulai</div>
+    <!-- Center: YouTube Player & Scrubber -->
+    <div class="ws-center">
+      <div class="ws-top-controls">
+        <div class="draft-select-group">
+          <label class="field-label" style="margin: 0;">Active Draft:</label>
+          <select class="input" id="draftSelect" style="width: 140px; padding: 4px 8px; font-weight: 600;"></select>
+          <button class="btn btn-sm" id="editVideoBtn" title="Change YouTube Link or Draft Number">Edit Video / Link</button>
         </div>
         <div id="approveSlot"></div>
       </div>
 
-      <div class="player-stage">
-        <div class="player-frame-wrap" id="frameWrap" style="display:none;"><div id="ytPlayer"></div></div>
-        <div class="stage-empty" id="stageEmpty">
-          Upload draft ke YouTube (Unlisted), lalu tambahkan link-nya lewat tombol + di panel kiri.
-        </div>
+      <div class="player-frame-wrap" id="frameWrap">
+        <div id="ytPlayer"></div>
+        <div class="player-shield" id="playerShield"></div>
       </div>
 
-      <div class="transport" id="transport" style="display:none;">
+      <div class="transport">
         <div class="scrubber-row">
           <span class="time-code" id="currentTimeLabel">00:00</span>
           <div class="scrubber" id="scrubber">
@@ -516,1393 +247,519 @@
           </div>
           <span class="time-code" id="totalTimeLabel">00:00</span>
         </div>
-        <div class="controls-row">
-          <div class="controls-left">
-            <div class="icon-btn" id="playPauseBtn" title="Play/Pause">▶</div>
-            <div class="color-picker">
-              <div class="swatch selected" data-color="#E8A33D" data-key="1" style="background:#E8A33D"><span class="swatch-key">1</span></div>
-              <div class="swatch" data-color="#C4634A" data-key="2" style="background:#C4634A"><span class="swatch-key">2</span></div>
-              <div class="swatch" data-color="#3E7A72" data-key="3" style="background:#3E7A72"><span class="swatch-key">3</span></div>
-              <div class="swatch" data-color="#7C8AE0" data-key="4" style="background:#7C8AE0"><span class="swatch-key">4</span></div>
-            </div>
-            <div class="shortcut-btn" id="shortcutBtn" title="Daftar shortcut">⌨</div>
-          </div>
-          <button class="btn" id="addStampBtn">+ Tambah revisi di <span id="addStampTime">00:00</span></button>
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <button class="btn btn-sm" id="playPauseBtn">▶ Play</button>
+          <button class="btn btn-primary btn-sm" id="addStampBtn">+ Add Revision Note</button>
         </div>
       </div>
 
       <div class="composer" id="noteComposer">
-        <div class="mention-pop" id="mentionPop"></div>
-        <div class="composer-color" id="composerColor"></div>
-        <input type="text" class="input" id="noteInput" placeholder="Tulis catatan revisi... ketik @ untuk menyebut orang">
-        <button class="btn" id="saveNoteBtn" style="flex-shrink:0">Simpan</button>
-        <button class="btn btn-ghost" id="cancelNoteBtn" style="flex-shrink:0">Batal</button>
+        <input type="text" class="input" id="noteInput" placeholder="Add revision details at timestamp...">
+        <button class="btn btn-primary" id="saveNoteBtn">Save</button>
+        <button class="btn btn-ghost" id="cancelNoteBtn">Cancel</button>
       </div>
     </div>
 
-    <div class="stamps-panel">
-      <div class="stamps-panel-head">
-        <h3>Revisi</h3>
-        <span class="stamps-count" id="stampsCount">0 total</span>
+    <!-- Right: Revision List -->
+    <div class="ws-panel">
+      <div class="ws-panel-head">
+        <span>Revisions</span>
+        <span style="font-size: 11px; color: var(--text-muted);" id="stampsSummary">0 Notes</span>
       </div>
       <div class="stamps-list" id="stampsList"></div>
-      <div class="stamps-footer" id="stampsFooter">Memuat...</div>
     </div>
   </div>
 </div>
 
 <!-- ================= MODALS ================= -->
+
+<!-- Create Project Modal -->
 <div class="modal-backdrop" id="projectModal">
   <div class="modal">
-    <h3>Project baru</h3>
-    <p class="modal-sub">Setelah dibuat, tentukan siapa reviewer dan siapa editor</p>
+    <h3>New Project</h3>
+    <p class="modal-sub">Create workspace project card</p>
     <div class="modal-field">
-      <label class="field-label">Nama project</label>
-      <input type="text" class="input" id="pmName" placeholder="mis. Wedding Aditya & Kirana">
+      <label class="field-label">Project Name</label>
+      <input type="text" class="input" id="pmName" placeholder="e.g. Commercial Reel 2026">
     </div>
     <div class="modal-field">
-      <label class="field-label">Nama klien</label>
-      <input type="text" class="input" id="pmClient" placeholder="mis. Kopi Kultura">
+      <label class="field-label">Client Name</label>
+      <input type="text" class="input" id="pmClient" placeholder="e.g. OceanHero">
     </div>
     <div class="modal-field">
-      <label class="field-label">Link logo klien (opsional)</label>
-      <input type="text" class="input" id="pmLogo" placeholder="https://... (kosongkan untuk pakai inisial)">
+      <label class="field-label">Delivery Deadline</label>
+      <input type="date" class="input" id="pmDeadline">
+    </div>
+    <div class="modal-field">
+      <label class="field-label">Card Cover Color</label>
+      <input type="color" class="input" id="pmCoverColor" value="#1E293B" style="height: 38px; padding: 2px;">
+    </div>
+    <div class="modal-field">
+      <label class="field-label">Client Logo URL (Optional)</label>
+      <input type="text" class="input" id="pmLogo" placeholder="https://...">
     </div>
     <div class="modal-actions">
-      <button class="btn btn-ghost" data-close="projectModal">Batal</button>
-      <button class="btn" id="pmSave">Buat project</button>
+      <button class="btn btn-ghost" data-close="projectModal">Cancel</button>
+      <button class="btn btn-primary" id="pmSave">Create Project</button>
     </div>
   </div>
 </div>
 
-<div class="modal-backdrop" id="videoModal">
-  <div class="modal">
-    <h3>Tambah draft video</h3>
-    <p class="modal-sub">Upload dulu ke YouTube sebagai Unlisted, lalu paste link-nya</p>
-    <div class="modal-field">
-      <label class="field-label">Judul video</label>
-      <input type="text" class="input" id="vmTitle" placeholder="mis. Wedding Teaser">
-    </div>
-    <div class="modal-field">
-      <label class="field-label">Link YouTube</label>
-      <input type="text" class="input" id="vmUrl" placeholder="https://youtu.be/VIDEO_ID">
-    </div>
-    <div class="modal-field">
-      <label class="field-label">Draft ke-</label>
-      <input type="number" class="input" id="vmDraft" value="1" min="1">
-    </div>
-    <div class="modal-actions">
-      <button class="btn btn-ghost" data-close="videoModal">Batal</button>
-      <button class="btn" id="vmSave">Tambah draft</button>
-    </div>
-  </div>
-</div>
-
-<div class="modal-backdrop" id="teamModal">
-  <div class="modal wide">
-    <h3 id="teamModalTitle">Atur tim project</h3>
-    <p class="modal-sub">Reviewer memberi revisi dan menyetujui draft. Editor upload draft dan menandai revisi selesai.</p>
-    <div id="assignList"></div>
-    <div class="modal-actions">
-      <button class="btn" data-close="teamModal">Selesai</button>
-    </div>
-  </div>
-</div>
-
+<!-- Edit Project Modal (Master Only) -->
 <div class="modal-backdrop" id="projectEditModal">
   <div class="modal">
-    <h3>Edit project</h3>
-    <p class="modal-sub">Hanya master yang bisa mengubah informasi project</p>
-    <div class="avatar-row">
-      <div class="avatar-preview" id="peLogoPreview" style="background:var(--panel-2);border-radius:8px;color:var(--text-dim)"></div>
-      <div style="flex:1">
-        <label class="field-label">Logo klien</label>
-        <input type="file" class="input" id="peLogoFile" accept="image/*" style="padding:6px">
-        <div style="font-size:11px;color:var(--text-faint);margin-top:5px">Atau tempel link gambar di bawah</div>
-      </div>
-    </div>
+    <h3>Edit Project Details</h3>
+    <p class="modal-sub">Update project configuration & delivery schedule</p>
     <div class="modal-field">
-      <label class="field-label">Link logo</label>
-      <input type="text" class="input" id="peLogo" placeholder="https://...">
-    </div>
-    <div class="modal-field">
-      <label class="field-label">Nama project</label>
+      <label class="field-label">Project Name</label>
       <input type="text" class="input" id="peName">
     </div>
     <div class="modal-field">
-      <label class="field-label">Nama klien</label>
+      <label class="field-label">Client Name</label>
       <input type="text" class="input" id="peClient">
     </div>
     <div class="modal-field">
-      <label class="field-label">Status</label>
-      <select class="input" id="peStatus">
-        <option value="active">Aktif</option>
-        <option value="archived">Diarsipkan</option>
-      </select>
+      <label class="field-label">Delivery Deadline</label>
+      <input type="date" class="input" id="peDeadline">
     </div>
-    <div class="modal-actions">
-      <button class="btn btn-ghost" id="peTeamBtn" style="margin-right:auto">Atur tim</button>
-      <button class="btn btn-ghost" data-close="projectEditModal">Batal</button>
-      <button class="btn" id="peSave">Simpan</button>
-    </div>
-  </div>
-</div>
-
-<div class="modal-backdrop" id="shortcutModal">
-  <div class="modal">
-    <h3>Shortcut keyboard</h3>
-    <p class="modal-sub">Aktif saat kamu tidak sedang mengetik di kolom teks</p>
-    <div class="shortcut-row">
-      <div class="shortcut-keys"><span class="kbd">1</span><span class="kbd">2</span><span class="kbd">3</span><span class="kbd">4</span></div>
-      <div>Pause video dan buka catatan revisi dengan warna tersebut</div>
-    </div>
-    <div class="shortcut-row">
-      <div class="shortcut-keys"><span class="kbd">Space</span></div>
-      <div>Play / pause</div>
-    </div>
-    <div class="shortcut-row">
-      <div class="shortcut-keys"><span class="kbd">←</span><span class="kbd">→</span></div>
-      <div>Mundur / maju 5 detik</div>
-    </div>
-    <div class="shortcut-row">
-      <div class="shortcut-keys"><span class="kbd">Shift</span><span class="kbd">←</span><span class="kbd">→</span></div>
-      <div>Mundur / maju 1 detik</div>
-    </div>
-    <div class="shortcut-row">
-      <div class="shortcut-keys"><span class="kbd">↑</span><span class="kbd">↓</span></div>
-      <div>Draft sebelumnya / berikutnya</div>
-    </div>
-    <div class="shortcut-row">
-      <div class="shortcut-keys"><span class="kbd">Enter</span></div>
-      <div>Simpan catatan yang sedang diketik</div>
-    </div>
-    <div class="shortcut-row">
-      <div class="shortcut-keys"><span class="kbd">Esc</span></div>
-      <div>Batalkan catatan / tutup jendela</div>
-    </div>
-    <div class="modal-actions">
-      <button class="btn" data-close="shortcutModal">Tutup</button>
-    </div>
-  </div>
-</div>
-
-<div class="modal-backdrop" id="settingsModal">
-  <div class="modal">
-    <h3>Pengaturan akun</h3>
-    <p class="modal-sub" id="smEmail">—</p>
-
-    <div class="avatar-row">
-      <div class="avatar-preview" id="smAvatarPreview"></div>
-      <div style="flex:1">
-        <label class="field-label">Foto profil</label>
-        <input type="file" class="input" id="smPhotoFile" accept="image/*" style="padding:6px">
-        <div style="font-size:11px;color:var(--text-faint);margin-top:5px">
-          <span id="smRemovePhoto" class="reply-link">Hapus foto</span>
-        </div>
-      </div>
-    </div>
-
     <div class="modal-field">
-      <label class="field-label">Nama tampilan</label>
-      <input type="text" class="input" id="smName">
-      <div style="font-size:11px;color:var(--text-faint);margin-top:5px">
-        Nama ini yang dipakai saat orang menyebut kamu dengan @
-      </div>
+      <label class="field-label">Card Cover Color</label>
+      <input type="color" class="input" id="peCoverColor" style="height: 38px; padding: 2px;">
     </div>
-
     <div class="modal-field">
-      <label class="field-label">Notifikasi browser</label>
-      <div class="perm-box">
-        <div class="perm-status" id="smPermStatus">—</div>
-        <button class="btn btn-sm" id="smPermBtn">Izinkan notifikasi</button>
-        <button class="btn btn-ghost btn-sm" id="smTestNotif">Tes notifikasi</button>
-        <div class="perm-note">
-          Di prototype ini notifikasi hanya muncul selama tab terbuka.
-          Versi yang tetap jalan saat tab ditutup butuh Service Worker dan server pengirim,
-          baru bisa dipasang setelah aplikasi jalan di Next.js.
-        </div>
-      </div>
+      <label class="field-label">Client Logo URL</label>
+      <input type="text" class="input" id="peLogo">
     </div>
-
     <div class="modal-actions">
-      <button class="btn btn-ghost" data-close="settingsModal">Batal</button>
-      <button class="btn" id="smSave">Simpan</button>
+      <button class="btn btn-ghost" data-close="projectEditModal">Cancel</button>
+      <button class="btn btn-primary" id="peSave">Save Changes</button>
     </div>
   </div>
 </div>
 
-<div class="flag">Tersambung ke Supabase — data tersimpan permanen dan tersinkron antar user.</div>
+<!-- New/Edit Video Modal -->
+<div class="modal-backdrop" id="videoModal">
+  <div class="modal">
+    <h3 id="vmModalTitle">Video Setup</h3>
+    <p class="modal-sub">Link an unlisted YouTube video draft</p>
+    <div class="modal-field">
+      <label class="field-label">Video Title</label>
+      <input type="text" class="input" id="vmTitle" placeholder="e.g. Teaser Cut">
+    </div>
+    <div class="modal-field">
+      <label class="field-label">YouTube Link / Video ID</label>
+      <input type="text" class="input" id="vmUrl" placeholder="https://youtu.be/...">
+    </div>
+    <div class="modal-field">
+      <label class="field-label">Draft Number</label>
+      <input type="number" class="input" id="vmDraft" min="1" value="1">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" data-close="videoModal">Cancel</button>
+      <button class="btn btn-primary" id="vmSave">Save Video</button>
+    </div>
+  </div>
+</div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://www.youtube.com/iframe_api"></script>
 <script>
-/* =====================================================================
-   KONFIGURASI — isi dua baris ini dari Supabase Dashboard
-   Settings → API → Project URL & anon public key
-   ===================================================================== */
-const SUPABASE_URL      = 'https://yfntdcncuysabiyqxvfi.supabase.co';
+const SUPABASE_URL = 'https://yfntdcncuysabiyqxvfi.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_WUoMF4XBdoPEChXrVy7UtA_IPKKTz4H';
-
-/* anon key memang boleh terlihat publik. Yang menjaga data bukan
-   kerahasiaan key ini, tapi RLS di database. */
-
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 const state = {
-  me:null, profiles:[], projects:[], members:[], videos:[],
-  stamps:[], replies:[], notifs:[],
-  currentProjectId:null, currentVideoId:null,
-  selectedColor:'#E8A33D', pendingStampTime:null
+  me: null, projects: [], members: [], videos: [], stamps: [], profiles: [],
+  currentProjectId: null, currentVideoId: null, editingProjectId: null, editingVideoId: null
 };
 
-/* =====================================================================
-   HELPERS
-   ===================================================================== */
 const $ = id => document.getElementById(id);
-const userById = id => state.profiles.find(p => p.id === id);
-const userByName = n => state.profiles.find(p =>
-  (p.display_name||'').toLowerCase() === String(n).toLowerCase());
 
-function formatTime(sec){
-  sec = Math.floor(sec||0);
-  return String(Math.floor(sec/60)).padStart(2,'0')+':'+String(sec%60).padStart(2,'0');
-}
-function timeAgo(ts){
-  const m = Math.floor((Date.now()-new Date(ts).getTime())/60000);
-  if (m < 1) return 'baru saja';
-  if (m < 60) return m+' menit lalu';
-  const h = Math.floor(m/60);
-  if (h < 24) return h+' jam lalu';
-  return Math.floor(h/24)+' hari lalu';
-}
-function escapeHtml(s){ const d=document.createElement('div'); d.textContent=s==null?'':s; return d.innerHTML; }
-function renderMentions(text){
-  return escapeHtml(text).replace(/@(\w+)/g, (full, name) =>
-    userByName(name) ? `<span class="mention-tag">@${escapeHtml(name)}</span>` : full);
-}
-function extractYouTubeId(url){
-  const m = url.match(/(?:youtube\.com\/watch\?v=|youtube\.com\/embed\/|youtu\.be\/|youtube\.com\/shorts\/)([a-zA-Z0-9_-]{11})/);
+function extractYouTubeId(url) {
+  const m = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})/);
   if (m) return m[1];
-  if (/^[a-zA-Z0-9_-]{11}$/.test(url.trim())) return url.trim();
-  return null;
-}
-function avatarHtml(u, size){
-  size = size || 20;
-  if (!u) return '';
-  const inner = u.avatar_url ? `<img src="${escapeHtml(u.avatar_url)}" alt="">`
-                             : escapeHtml((u.display_name||'?')[0]);
-  return `<span class="member-avatar" style="background:${u.avatar_color||'#8B8F98'};
-           width:${size}px;height:${size}px;font-size:${size*0.45}px">${inner}</span>`;
-}
-function fail(err, what){
-  console.error(what, err);
-  alert('Gagal ' + what + '.\n\n' + (err && err.message ? err.message : 'Cek koneksi internet.'));
+  return url.length === 11 ? url : null;
 }
 
-/* --- role per project --- */
-function myRoleIn(projectId){
-  if (!state.me) return null;
-  if (state.me.is_master) return 'master';
-  const m = state.members.find(x => x.project_id===projectId && x.user_id===state.me.id);
-  return m ? m.role : null;
-}
-function canReview(pid){ const r=myRoleIn(pid); return r==='reviewer'||r==='master'; }
-function isEditorIn(pid){ return myRoleIn(pid)==='editor'; }
-function myProjects(){ return state.projects; }   // RLS sudah menyaring di server
-function projectMembers(pid){
-  return state.members.filter(m => m.project_id===pid)
-    .map(m => ({ ...m, user:userById(m.user_id) })).filter(m => m.user);
-}
-function statusBadge(s){
-  if (s==='approved') return '<span class="badge badge-approved">Approved</span>';
-  if (s==='needs_revision') return '<span class="badge badge-revision">Perlu revisi</span>';
-  return '<span class="badge badge-review">In review</span>';
-}
-function roleChipHtml(role){
-  if (role==='master')   return '<span class="role-chip master">Master</span>';
-  if (role==='reviewer') return '<span class="role-chip reviewer">Reviewer</span>';
-  if (role==='editor')   return '<span class="role-chip editor">Editor</span>';
-  return '';
+function formatTime(sec) {
+  sec = Math.floor(sec || 0);
+  return String(Math.floor(sec/60)).padStart(2,'0') + ':' + String(sec%60).padStart(2,'0');
 }
 
-/* =====================================================================
-   LOAD DATA
-   ===================================================================== */
-async function loadAll(){
-  const [pf, pr, pm, vd, st, rp, nt] = await Promise.all([
-    sb.from('profiles').select('*'),
-    sb.from('projects').select('*').order('created_at'),
-    sb.from('project_members').select('*'),
-    sb.from('videos').select('*').order('order_index'),
-    sb.from('stamps').select('*').order('timestamp_seconds'),
-    sb.from('stamp_replies').select('*').order('created_at'),
-    sb.from('notifications').select('*').order('created_at',{ascending:false}).limit(50)
-  ]);
-  const bad = [pf,pr,pm,vd,st,rp,nt].find(r => r.error);
-  if (bad){ fail(bad.error, 'memuat data'); return false; }
-  state.profiles = pf.data; state.projects = pr.data; state.members = pm.data;
-  state.videos   = vd.data; state.stamps   = st.data; state.replies = rp.data;
-  state.notifs   = nt.data;
-  return true;
-}
-
-/* --- realtime: satu langganan untuk semua tabel --- */
-let refreshTimer = null;
-function scheduleRefresh(){
-  clearTimeout(refreshTimer);
-  refreshTimer = setTimeout(async () => {
-    const before = unreadCount();
-    if (!await loadAll()) return;
-    repaintCurrentView();
-    const after = unreadCount();
-    // notifikasi desktop hanya untuk yang benar-benar baru masuk
-    if (after > before){
-      const latest = myNotifs()[0];
-      if (latest) desktopNotify('TDR Revision Hub', latest.body);
-    }
-  }, 250);
-}
-
-function subscribeRealtime(){
-  sb.channel('revision-hub')
-    .on('postgres_changes',{event:'*',schema:'public',table:'stamps'},        scheduleRefresh)
-    .on('postgres_changes',{event:'*',schema:'public',table:'stamp_replies'}, scheduleRefresh)
-    .on('postgres_changes',{event:'*',schema:'public',table:'videos'},        scheduleRefresh)
-    .on('postgres_changes',{event:'*',schema:'public',table:'projects'},      scheduleRefresh)
-    .on('postgres_changes',{event:'*',schema:'public',table:'project_members'},scheduleRefresh)
-    .on('postgres_changes',{event:'*',schema:'public',table:'notifications'}, scheduleRefresh)
-    .subscribe();
-}
-
-function repaintCurrentView(){
-  renderBells();
-  if ($('workspace').style.display === 'flex'){
-    const stillThere = state.projects.some(p => p.id === state.currentProjectId);
-    if (!stillThere){ showDashboard(); return; }
-    renderVideoList(); renderMembersBox(); renderStamps();
-    const v = state.videos.find(x => x.id === state.currentVideoId);
-    if (v) renderApproveButton(v);
-  } else if ($('dashboard').style.display === 'flex'){
-    renderProjects(); renderTaskPanel();
-  }
-}
-
-/* =====================================================================
-   NOTIFICATIONS
-   ===================================================================== */
-function myNotifs(){ return state.notifs; }        // RLS sudah menyaring
-function unreadCount(){ return state.notifs.filter(n => !n.read_at).length; }
-
-function desktopNotify(title, body){
-  if (!('Notification' in window)) return;
-  if (Notification.permission !== 'granted') return;
-  try { new Notification(title, { body, tag:'tdr-'+Date.now() }); } catch(e){}
-}
-
-function renderBells(){
-  const c = unreadCount();
-  ['dash','ws'].forEach(p => {
-    const dot = $(p+'BellDot');
-    if (!dot) return;
-    dot.textContent = c > 9 ? '9+' : c;
-    dot.classList.toggle('show', c > 0);
-  });
-}
-
-function renderNotifPanel(prefix){
-  const panel = $(prefix+'NotifPanel');
-  const list = myNotifs();
-  let html = `<div class="notif-head"><h4>Notifikasi</h4>
-     ${list.some(n=>!n.read_at) ? '<span class="reply-link" id="markAllRead">Tandai terbaca</span>' : ''}</div>`;
-  if (list.length === 0){
-    html += '<div class="notif-empty">Belum ada notifikasi.</div>';
-  } else {
-    const colors = { mention:'#7C8AE0', new_revision:'#E8A33D', reply:'#3E7A72',
-                     resolved:'#3E7A72', approved:'#3E7A72' };
-    list.slice(0,25).forEach(n => {
-      html += `<div class="notif-item ${n.read_at?'':'unread'}" data-nid="${n.id}">
-        <div class="notif-icon" style="background:${colors[n.type]||'#8B8F98'}"></div>
-        <div><div class="notif-body">${renderMentions(n.body)}</div>
-        <div class="notif-meta">${timeAgo(n.created_at)}</div></div></div>`;
-    });
-  }
-  panel.innerHTML = html;
-
-  const mark = panel.querySelector('#markAllRead');
-  if (mark) mark.addEventListener('click', async e => {
-    e.stopPropagation();
-    const ids = myNotifs().filter(n=>!n.read_at).map(n=>n.id);
-    if (!ids.length) return;
-    const { error } = await sb.from('notifications')
-      .update({ read_at:new Date().toISOString() }).in('id', ids);
-    if (error) return fail(error,'menandai notifikasi');
-    await loadAll(); renderBells(); renderNotifPanel(prefix);
-  });
-
-  panel.querySelectorAll('.notif-item').forEach(item => {
-    item.addEventListener('click', async () => {
-      const n = state.notifs.find(x => x.id === item.dataset.nid);
-      panel.classList.remove('open');
-      if (!n.read_at){
-        await sb.from('notifications')
-          .update({ read_at:new Date().toISOString() }).eq('id', n.id);
-        await loadAll(); renderBells();
-      }
-      if (n.project_id){
-        openProject(n.project_id);
-        if (n.video_id) selectVideo(n.video_id);
-      }
-    });
-  });
-}
-
-function wireBell(prefix){
-  $(prefix+'Bell').addEventListener('click', e => {
-    e.stopPropagation();
-    const panel = $(prefix+'NotifPanel');
-    const wasOpen = panel.classList.contains('open');
-    document.querySelectorAll('.notif-panel').forEach(x=>x.classList.remove('open'));
-    if (!wasOpen){ renderNotifPanel(prefix); panel.classList.add('open'); }
-  });
-}
-wireBell('dash'); wireBell('ws');
-document.addEventListener('click', () =>
-  document.querySelectorAll('.notif-panel').forEach(x => x.classList.remove('open')));
-
-/* =====================================================================
-   AUTH
-   ===================================================================== */
-$('loginBtn').addEventListener('click', doLogin);
-['loginEmail','loginPass'].forEach(id =>
-  $(id).addEventListener('keydown', e => { if (e.key==='Enter') doLogin(); }));
-
-async function doLogin(){
-  const email = $('loginEmail').value.trim().toLowerCase();
+/* ================= AUTH ================= */
+$('loginBtn').addEventListener('click', async () => {
+  const email = $('loginEmail').value.trim();
   const password = $('loginPass').value;
   const err = $('loginError');
-  const btn = $('loginBtn');
-  if (!email || !password){ err.textContent='Email dan password harus diisi.'; err.classList.add('show'); return; }
+  err.style.display = 'none';
 
-  btn.disabled = true; btn.textContent = 'Masuk...';
   const { error } = await sb.auth.signInWithPassword({ email, password });
-  btn.disabled = false; btn.textContent = 'Masuk';
-
-  if (error){
-    err.textContent = error.message.includes('Invalid')
-      ? 'Email atau password salah.' : error.message;
-    err.classList.add('show');
-    return;
-  }
-  err.classList.remove('show');
-  await afterLogin();
-}
-
-async function afterLogin(){
-  const { data:{ user } } = await sb.auth.getUser();
-  if (!user) return;
-  if (!await loadAll()) return;
-
-  state.me = state.profiles.find(p => p.id === user.id);
-  if (!state.me){
-    alert('Akunmu belum punya baris di tabel profiles.\n\n'+
-          'Jalankan bagian trigger handle_new_user di schema-v3.sql, '+
-          'atau tambahkan barisnya manual di Table Editor.');
-    await sb.auth.signOut();
-    return;
-  }
-  $('loginScreen').style.display = 'none';
-  subscribeRealtime();
-  showDashboard();
-}
+  if (error) { err.style.display = 'block'; return; }
+  bootApp();
+});
 
 $('logoutBtn').addEventListener('click', async () => {
   await sb.auth.signOut();
-  state.me=null; state.currentProjectId=null; state.currentVideoId=null;
-  destroyPlayer();
-  $('dashboard').style.display='none'; $('workspace').style.display='none';
-  $('loginScreen').style.display='flex';
-  $('loginPass').value='';
+  location.reload();
 });
 
-/* =====================================================================
-   DASHBOARD
-   ===================================================================== */
-function showDashboard(){
-  destroyPlayer();
-  state.currentProjectId=null; state.currentVideoId=null;
-  $('workspace').style.display='none';
-  $('dashboard').style.display='flex';
+async function loadData() {
+  const [pr, pm, vd, st, pf] = await Promise.all([
+    sb.from('projects').select('*').order('created_at', { ascending: false }),
+    sb.from('project_members').select('*'),
+    sb.from('videos').select('*').order('draft_number', { ascending: true }),
+    sb.from('stamps').select('*').order('timestamp_seconds', { ascending: true }),
+    sb.from('profiles').select('*')
+  ]);
+  state.projects = pr.data || [];
+  state.members = pm.data || [];
+  state.videos = vd.data || [];
+  state.stamps = st.data || [];
+  state.profiles = pf.data || [];
+}
+
+async function bootApp() {
+  const { data: { user } } = await sb.auth.getUser();
+  if (!user) return;
+  await loadData();
+  state.me = state.profiles.find(p => p.id === user.id);
+  
+  $('loginScreen').style.display = 'none';
+  $('dashboard').style.display = 'flex';
   $('dashUserName').textContent = state.me.display_name;
-  const chip = $('dashRoleChip');
-  chip.textContent = state.me.is_master ? 'Master' : 'Anggota';
-  chip.className = 'role-chip ' + (state.me.is_master ? 'master' : 'editor');
-  $('dashActions').innerHTML = state.me.is_master
-    ? '<button class="btn" id="newProjectBtn">+ Project baru</button>' : '';
-  const np = $('newProjectBtn');
-  if (np) np.addEventListener('click', () => openModal('projectModal','pmName'));
-  $('dashSubline').textContent = state.me.is_master
-    ? 'Kamu master — bisa buat project dan atur siapa reviewer/editor'
-    : 'Project tempat kamu jadi anggota';
-  renderBells(); renderProjects(); renderTaskPanel();
-}
+  $('dashRoleChip').textContent = state.me.is_master ? 'Master' : 'Editor / Reviewer';
 
-function projectStats(pid){
-  const vids = state.videos.filter(v => v.project_id === pid);
-  const ids = vids.map(v => v.id);
-  return {
-    total: vids.length,
-    approved: vids.filter(v => v.status==='approved').length,
-    open: state.stamps.filter(s => ids.includes(s.video_id) && s.status==='open').length
-  };
-}
-
-function renderProjects(){
-  const wrap = $('projectListWrap');
-  const list = myProjects();
-  if (list.length === 0){
-    wrap.innerHTML = `<div class="dash-empty">${state.me.is_master
-      ? 'Belum ada project. Klik "+ Project baru" untuk mulai.'
-      : 'Kamu belum ditambahkan ke project mana pun. Hubungi master.'}</div>`;
-    return;
+  if (state.me.is_master) {
+    $('dashActions').innerHTML = `<button class="btn btn-primary" id="newProjectBtn">+ New Project</button>`;
+    $('newProjectBtn').onclick = () => openModal('projectModal');
   }
-  let html = '<div class="project-grid">';
-  list.forEach(p => {
-    const s = projectStats(p.id);
-    const pct = s.total ? Math.round((s.approved/s.total)*100) : 0;
-    const role = myRoleIn(p.id);
-    const logoInner = p.logo_url
-      ? `<img src="${escapeHtml(p.logo_url)}" alt="">` : escapeHtml(p.name[0]);
-    html += `
-      <div class="project-card" data-pid="${p.id}">
-        <div class="pc-top">
-          <div class="pc-logo" style="color:var(--text-dim)">${logoInner}</div>
-          <div style="min-width:0">
-            <div class="pc-name">${escapeHtml(p.name)}</div>
-            <div class="pc-client">${escapeHtml(p.client_name || 'Tanpa klien')}</div>
-          </div>
-          <div class="pc-role" style="display:flex;align-items:center;gap:6px">
-            ${roleChipHtml(role)}
-            ${state.me.is_master ? `<button class="pc-edit" data-edit="${p.id}" title="Edit project">✎</button>` : ''}
-          </div>
-        </div>
-        <div class="pc-progress-label">
-          <span>${s.approved} dari ${s.total} video approved</span><span>${pct}%</span>
-        </div>
-        <div class="pc-bar"><div class="pc-bar-fill" style="width:${pct}%"></div></div>
-        <div class="pc-foot">
-          <span><strong>${s.total}</strong> video</span>
-          <span class="${s.open?'pc-open':''}"><strong>${s.open}</strong> revisi terbuka</span>
-        </div>
-      </div>`;
-  });
-  wrap.innerHTML = html + '</div>';
-  wrap.querySelectorAll('.project-card').forEach(c =>
-    c.addEventListener('click', () => openProject(c.dataset.pid)));
-  wrap.querySelectorAll('.pc-edit').forEach(b =>
-    b.addEventListener('click', e => { e.stopPropagation(); openProjectEdit(b.dataset.edit); }));
+  renderProjectGrid();
 }
 
-$('pmSave').addEventListener('click', async () => {
-  const name = $('pmName').value.trim();
-  if (!name){ $('pmName').focus(); return; }
-  const { data, error } = await sb.from('projects').insert({
-    name, client_name:$('pmClient').value.trim() || null,
-    logo_url:$('pmLogo').value.trim() || null, created_by:state.me.id
-  }).select().single();
-  if (error) return fail(error,'membuat project');
-  $('pmName').value=''; $('pmClient').value=''; $('pmLogo').value='';
-  closeModal('projectModal');
-  await loadAll(); renderProjects(); renderTaskPanel();
-  openTeamModal(data.id);
-});
+/* ================= DASHBOARD ================= */
+function renderProjectGrid() {
+  const grid = $('projectGrid');
+  grid.innerHTML = '';
 
-/* =====================================================================
-   TASK PANEL
-   ===================================================================== */
-function myOpenTasks(){
-  const out = [];
-  myProjects().forEach(p => {
-    const vidIds = state.videos.filter(v => v.project_id===p.id).map(v => v.id);
-    state.stamps.filter(s => vidIds.includes(s.video_id) && s.status==='open').forEach(s => {
-      const v = state.videos.find(x => x.id===s.video_id);
-      const mentionsMe = new RegExp('@'+state.me.display_name+'\\b','i').test(s.note);
-      out.push({ stamp:s, video:v, project:p, mentionsMe });
-    });
-  });
-  return out.sort((a,b) => (b.mentionsMe - a.mentionsMe) ||
-    (new Date(b.stamp.created_at) - new Date(a.stamp.created_at)));
-}
-
-function renderTaskPanel(){
-  const list = $('taskList');
-  const tasks = myOpenTasks();
-  $('taskCount').textContent = tasks.length;
-  if (tasks.length === 0){
-    list.innerHTML = '<div class="task-empty">Tidak ada revisi terbuka. Semua beres.</div>';
-    return;
-  }
-  let html='', lastProject=null;
-  tasks.forEach(t => {
-    if (t.project.id !== lastProject){
-      html += `<div class="task-group">${escapeHtml(t.project.name)}</div>`;
-      lastProject = t.project.id;
-    }
-    html += `<div class="task-item ${t.mentionsMe?'mine':''}"
-                  data-pid="${t.project.id}" data-vid="${t.video.id}"
-                  data-time="${t.stamp.timestamp_seconds}">
-      <div class="task-dot" style="background:${t.stamp.color}"></div>
-      <div class="task-body">
-        <div class="task-note">${renderMentions(t.stamp.note)}</div>
-        <div class="task-meta">
-          <span class="task-time">${formatTime(t.stamp.timestamp_seconds)}</span>
-          <span>${escapeHtml(t.video.title)} · Draft ${t.video.draft_number}</span>
-          ${t.mentionsMe ? '<span class="mine-flag">untuk kamu</span>' : ''}
-        </div>
-      </div></div>`;
-  });
-  list.innerHTML = html;
-  list.querySelectorAll('.task-item').forEach(item => {
-    item.addEventListener('click', () => {
-      openProject(item.dataset.pid);
-      selectVideo(item.dataset.vid);
-      const t = parseFloat(item.dataset.time);
-      const wait = setInterval(() => {
-        if (playerReady){ clearInterval(wait); player.seekTo(t,true); }
-      }, 200);
-      setTimeout(()=>clearInterval(wait), 8000);
-    });
-  });
-}
-$('taskHead').addEventListener('click', () => $('taskPanel').classList.toggle('collapsed'));
-
-/* =====================================================================
-   EDIT PROJECT
-   ===================================================================== */
-let editingProjectId = null;
-
-function openProjectEdit(pid){
-  if (!state.me.is_master){ alert('Hanya master yang bisa mengubah informasi project.'); return; }
-  editingProjectId = pid;
-  const p = state.projects.find(x => x.id===pid);
-  $('peName').value=p.name; $('peClient').value=p.client_name||'';
-  $('peLogo').value=p.logo_url||''; $('peStatus').value=p.status||'active';
-  $('peLogoFile').value='';
-  paintLogoPreview(p.logo_url, p.name);
-  openModal('projectEditModal','peName');
-}
-function paintLogoPreview(src, name){
-  $('peLogoPreview').innerHTML = src ? `<img src="${escapeHtml(src)}" alt="">`
-                                     : escapeHtml((name||'?')[0]);
-}
-$('peLogo').addEventListener('input', () =>
-  paintLogoPreview($('peLogo').value.trim(), $('peName').value));
-
-$('peLogoFile').addEventListener('change', async e => {
-  const f = e.target.files[0]; if (!f) return;
-  const url = await uploadMedia(f, 'logos');
-  if (url){ $('peLogo').value=url; paintLogoPreview(url, $('peName').value); }
-});
-
-$('peTeamBtn').addEventListener('click', () => {
-  closeModal('projectEditModal'); openTeamModal(editingProjectId);
-});
-
-$('peSave').addEventListener('click', async () => {
-  const name = $('peName').value.trim();
-  if (!name){ $('peName').focus(); return; }
-  const { error } = await sb.from('projects').update({
-    name, client_name:$('peClient').value.trim() || null,
-    logo_url:$('peLogo').value.trim() || null, status:$('peStatus').value
-  }).eq('id', editingProjectId);
-  if (error) return fail(error,'menyimpan project');
-  closeModal('projectEditModal');
-  await loadAll(); renderProjects(); renderTaskPanel();
-  if (state.currentProjectId === editingProjectId){
-    const p = state.projects.find(x=>x.id===editingProjectId);
-    $('wsProjectName').textContent = p.name;
-    $('wsProjectClient').textContent = p.client_name ? '/ '+p.client_name : '';
-  }
-});
-
-/* --- upload ke Supabase Storage --- */
-async function uploadMedia(file, folder){
-  if (file.size > 2*1024*1024){ alert('Ukuran file maksimal 2MB.'); return null; }
-  const ext = (file.name.split('.').pop()||'jpg').toLowerCase();
-  const path = `${folder}/${state.me.id}-${Date.now()}.${ext}`;
-  const { error } = await sb.storage.from('media').upload(path, file, { upsert:true });
-  if (error){ fail(error,'mengunggah gambar'); return null; }
-  return sb.storage.from('media').getPublicUrl(path).data.publicUrl;
-}
-
-/* =====================================================================
-   TEAM ASSIGNMENT
-   ===================================================================== */
-function openTeamModal(pid){
-  const p = state.projects.find(x => x.id===pid);
-  $('teamModalTitle').textContent = 'Atur tim — ' + p.name;
-  const box = $('assignList'); box.innerHTML='';
-  state.profiles.filter(u => !u.is_master).forEach(u => {
-    const m = state.members.find(x => x.project_id===pid && x.user_id===u.id);
-    const row = document.createElement('div');
-    row.className='assign-row';
-    row.innerHTML = `${avatarHtml(u,26)}
-      <div class="assign-name">${escapeHtml(u.display_name)}
-        <div class="assign-email">${escapeHtml(u.email)}</div></div>
-      <select class="input assign-select" data-uid="${u.id}">
-        <option value="">Tidak terlibat</option>
-        <option value="reviewer" ${m&&m.role==='reviewer'?'selected':''}>Reviewer</option>
-        <option value="editor"   ${m&&m.role==='editor'  ?'selected':''}>Editor</option>
-      </select>`;
-    box.appendChild(row);
-  });
-  box.querySelectorAll('select').forEach(sel => {
-    sel.addEventListener('change', async () => {
-      const uid = sel.dataset.uid;
-      await sb.from('project_members').delete()
-        .eq('project_id',pid).eq('user_id',uid);
-      if (sel.value){
-        const { error } = await sb.from('project_members').insert({
-          project_id:pid, user_id:uid, role:sel.value, added_by:state.me.id });
-        if (error) return fail(error,'mengatur tim');
-      }
-      await loadAll(); renderProjects(); renderTaskPanel();
-      if (state.currentProjectId === pid){ renderMembersBox(); renderStamps(); }
-    });
-  });
-  openModal('teamModal');
-}
-
-/* =====================================================================
-   WORKSPACE
-   ===================================================================== */
-function openProject(pid){
-  state.currentProjectId=pid; state.currentVideoId=null;
-  const p = state.projects.find(x => x.id===pid);
-  if (!p) return showDashboard();
-  $('dashboard').style.display='none'; $('workspace').style.display='flex';
-  $('wsProjectName').textContent=p.name;
-  $('wsProjectClient').textContent = p.client_name ? '/ '+p.client_name : '';
-  $('wsUserName').textContent = state.me.display_name;
-  const role = myRoleIn(pid), chip = $('wsRoleChip');
-  chip.textContent = role==='master'?'Master':role==='reviewer'?'Reviewer':'Editor';
-  chip.className = 'role-chip ' + role;
-  renderBells(); renderVideoList(); renderMembersBox(); clearPlayerArea(); renderStamps();
-}
-$('backBtn').addEventListener('click', showDashboard);
-
-function renderMembersBox(){
-  const pid = state.currentProjectId, box = $('membersBox');
-  const mem = projectMembers(pid);
-  let html = `<h4>Tim project</h4>`;
-  mem.forEach(m => {
-    html += `<div class="member-row">${avatarHtml(m.user)}
-      <span>${escapeHtml(m.user.display_name)}</span>
-      <span style="margin-left:auto">${roleChipHtml(m.role)}</span></div>`;
-  });
-  if (!mem.length) html += `<div style="font-size:11.5px;color:var(--text-faint)">Belum ada anggota.</div>`;
-  if (state.me.is_master)
-    html += `<button class="btn btn-ghost btn-sm" id="editTeamBtn" style="margin-top:8px;width:100%">Atur tim</button>`;
-  box.innerHTML = html;
-  const b = $('editTeamBtn');
-  if (b) b.addEventListener('click', () => openTeamModal(pid));
-}
-
-function currentProjectVideos(){
-  return state.videos.filter(v => v.project_id===state.currentProjectId)
-    .sort((a,b) => a.title.localeCompare(b.title) || a.draft_number-b.draft_number);
-}
-
-function renderVideoList(){
-  const list = $('videoList'), vids = currentProjectVideos();
-  if (!vids.length){
-    list.innerHTML='<div class="sidebar-empty">Belum ada draft. Klik + untuk menambahkan link YouTube.</div>';
-    return;
-  }
-  list.innerHTML='';
-  vids.forEach(v => {
-    const open = state.stamps.filter(s => s.video_id===v.id && s.status==='open').length;
-    const el = document.createElement('div');
-    el.className='video-item'+(v.id===state.currentVideoId?' active':'');
-    el.innerHTML=`<div class="video-item-title">${escapeHtml(v.title)}</div>
-      <div class="video-item-meta"><span class="badge badge-draft">Draft ${v.draft_number}</span>
-      ${statusBadge(v.status)}</div>
-      <div class="video-item-count">${open} revisi terbuka</div>`;
-    el.addEventListener('click', () => selectVideo(v.id));
-    list.appendChild(el);
-  });
-}
-
-$('addVideoBtn').addEventListener('click', () => {
-  const vids = currentProjectVideos();
-  $('vmDraft').value = vids.length ? Math.max(...vids.map(v=>v.draft_number))+1 : 1;
-  if (vids.length) $('vmTitle').value = vids[vids.length-1].title;
-  openModal('videoModal','vmUrl');
-});
-
-$('vmSave').addEventListener('click', async () => {
-  const title=$('vmTitle').value.trim(), url=$('vmUrl').value.trim();
-  const draft=parseInt($('vmDraft').value,10)||1;
-  if (!title){ $('vmTitle').focus(); return; }
-  const ytId = extractYouTubeId(url);
-  if (!ytId){ alert('Link YouTube tidak dikenali.\nContoh: https://youtu.be/VIDEO_ID'); return; }
-  const { data, error } = await sb.from('videos').insert({
-    project_id:state.currentProjectId, title, youtube_id:ytId,
-    draft_number:draft, order_index:draft, uploaded_by:state.me.id
-  }).select().single();
-  if (error) return fail(error,'menambah draft');
-  $('vmTitle').value=''; $('vmUrl').value='';
-  closeModal('videoModal');
-  await loadAll(); renderVideoList(); selectVideo(data.id);
-});
-
-/* =====================================================================
-   PLAYER
-   ===================================================================== */
-let player=null, playerReady=false, pollHandle=null;
-
-function clearPlayerArea(){
-  destroyPlayer();
-  $('frameWrap').style.display='none'; $('stageEmpty').style.display='block';
-  $('transport').style.display='none'; $('noteComposer').classList.remove('open');
-  $('playerTitle').textContent='Belum ada draft dipilih';
-  $('playerHint').textContent='Pilih draft di panel kiri, atau tambahkan yang baru';
-  $('approveSlot').innerHTML='';
-}
-function destroyPlayer(){
-  if (pollHandle){ clearInterval(pollHandle); pollHandle=null; }
-  if (player && player.destroy){ try{ player.destroy(); }catch(e){} }
-  player=null; playerReady=false;
-  const h=$('ytPlayer'); if (h) h.innerHTML='';
-}
-
-function selectVideo(vid){
-  state.currentVideoId=vid;
-  const v = state.videos.find(x => x.id===vid);
-  if (!v) return;
-  renderVideoList();
-  $('frameWrap').style.display='block'; $('stageEmpty').style.display='none';
-  $('transport').style.display='block';
-  $('playerTitle').textContent = v.title+' — Draft '+v.draft_number;
-  const ap = userById(v.approved_by);
-  $('playerHint').textContent = v.status==='approved'
-    ? 'Disetujui oleh '+(ap?ap.display_name:'—') : 'Sedang direview';
-  renderApproveButton(v); loadPlayer(v.youtube_id); renderStamps();
-}
-
-function buildShield(){
-  const sh=document.createElement('div');
-  sh.className='player-shield paused'; sh.id='playerShield';
-  sh.innerHTML='<div class="shield-play"></div>';
-  sh.addEventListener('click', () => {
-    if (!playerReady) return;
-    if (player.getPlayerState()===YT.PlayerState.PLAYING) player.pauseVideo();
-    else player.playVideo();
-  });
-  $('frameWrap').appendChild(sh);
-}
-function syncShield(code){
-  const sh=$('playerShield');
-  if (sh) sh.classList.toggle('paused', code !== YT.PlayerState.PLAYING);
-}
-
-function loadPlayer(youtubeId){
-  destroyPlayer();
-  const holder=document.createElement('div'); holder.id='ytPlayer';
-  $('frameWrap').innerHTML=''; $('frameWrap').appendChild(holder);
-  buildShield();
-  function create(){
-    player = new YT.Player('ytPlayer', {
-      videoId: youtubeId,
-      host: 'https://www.youtube-nocookie.com',
-      playerVars:{ controls:0, disablekb:1, fs:0, iv_load_policy:3,
-                   rel:0, playsinline:1, origin:window.location.origin },
-      events:{
-        onReady: () => { playerReady=true;
-          $('totalTimeLabel').textContent=formatTime(player.getDuration());
-          startPolling(); renderStampMarkers(); },
-        onStateChange: e => {
-          $('playPauseBtn').textContent=(e.data===YT.PlayerState.PLAYING)?'⏸':'▶';
-          syncShield(e.data);
-        },
-        onError: e => showPlayerError(e.data, youtubeId)
-      }
-    });
-  }
-  if (window.YT && window.YT.Player) create();
-  else { const t=setInterval(()=>{ if(window.YT&&window.YT.Player){clearInterval(t);create();} },150); }
-}
-
-function showPlayerError(code, youtubeId){
-  const reasons={2:'ID video tidak valid.',5:'Tidak bisa diputar di player HTML5.',
-    100:'Video tidak ditemukan atau sudah dihapus.',101:'Pemilik video menonaktifkan embed.',
-    150:'Pemilik video menonaktifkan embed.',
-    153:'Halaman dibuka tanpa HTTP Referer valid.'};
-  $('frameWrap').innerHTML = `<div style="width:100%;height:100%;display:flex;flex-direction:column;
-      align-items:center;justify-content:center;gap:12px;padding:28px;text-align:center;background:#0E1013;">
-      <div style="color:var(--danger);font-size:13px;font-weight:600;">Video gagal dimuat</div>
-      <div style="color:var(--text-dim);font-size:12.5px;max-width:420px;">${reasons[code]||('Kode '+code)}</div>
-      <div style="color:var(--text-faint);font-size:11.5px;max-width:420px;">
-        Cek di YouTube Studio: pastikan bukan Private dan embed diizinkan.</div>
-      <a href="https://www.youtube.com/watch?v=${youtubeId}" target="_blank" rel="noopener"
-        style="border:1px solid var(--border);color:var(--text-dim);padding:6px 13px;
-        border-radius:4px;font-size:12px;text-decoration:none;">Buka di YouTube ↗</a></div>`;
-}
-
-function startPolling(){
-  if (pollHandle) clearInterval(pollHandle);
-  pollHandle=setInterval(() => {
-    if (!playerReady || !player || !player.getCurrentTime) return;
-    const cur=player.getCurrentTime(), dur=player.getDuration()||1;
-    const pct=Math.min(100,(cur/dur)*100);
-    $('currentTimeLabel').textContent=formatTime(cur);
-    $('totalTimeLabel').textContent=formatTime(dur);
-    $('scrubberFill').style.width=pct+'%';
-    $('scrubberPlayhead').style.left=pct+'%';
-    $('addStampTime').textContent=formatTime(cur);
-  },300);
-}
-
-$('playPauseBtn').addEventListener('click', () => {
-  if (!playerReady) return;
-  if (player.getPlayerState()===YT.PlayerState.PLAYING) player.pauseVideo(); else player.playVideo();
-});
-$('scrubber').addEventListener('click', e => {
-  if (!playerReady || e.target.classList.contains('stamp-marker')) return;
-  const r=e.currentTarget.getBoundingClientRect();
-  player.seekTo(((e.clientX-r.left)/r.width)*(player.getDuration()||0), true);
-});
-
-/* =====================================================================
-   APPROVE
-   ===================================================================== */
-function renderApproveButton(v){
-  const slot=$('approveSlot');
-  const ap = userById(v.approved_by);
-  if (!canReview(state.currentProjectId)){
-    slot.innerHTML = v.status==='approved'
-      ? `<span class="badge badge-approved">Approved oleh ${escapeHtml(ap?ap.display_name:'—')}</span>`
-      : `<span class="badge badge-review">Menunggu approval reviewer</span>`;
-    return;
-  }
-  slot.innerHTML = v.status==='approved'
-    ? `<button class="btn btn-ghost" id="unapproveBtn">Batalkan approval</button>`
-    : `<button class="btn btn-approve" id="approveBtn">✓ Setujui draft ini</button>`;
-
-  const a=$('approveBtn');
-  if (a) a.addEventListener('click', async () => {
-    const open = state.stamps.filter(s=>s.video_id===v.id&&s.status==='open').length;
-    if (open>0 && !confirm('Masih ada '+open+' revisi terbuka. Tetap setujui?')) return;
-    const { error } = await sb.from('videos').update({ status:'approved' }).eq('id', v.id);
-    if (error) return fail(error,'menyetujui draft');
-    await loadAll(); renderVideoList();
-    const nv = state.videos.find(x=>x.id===v.id);
-    renderApproveButton(nv);
-    const who = userById(nv.approved_by);
-    $('playerHint').textContent='Disetujui oleh '+(who?who.display_name:'—');
-  });
-  const u=$('unapproveBtn');
-  if (u) u.addEventListener('click', async () => {
-    const { error } = await sb.from('videos').update({ status:'needs_revision' }).eq('id', v.id);
-    if (error) return fail(error,'membatalkan approval');
-    await loadAll(); renderVideoList();
-    renderApproveButton(state.videos.find(x=>x.id===v.id));
-    $('playerHint').textContent='Sedang direview';
-  });
-}
-
-/* =====================================================================
-   MENTION AUTOCOMPLETE
-   ===================================================================== */
-function setupMention(inputEl, popEl){
-  inputEl.addEventListener('input', () => {
-    const val=inputEl.value, pos=inputEl.selectionStart;
-    const before=val.slice(0,pos), m=before.match(/@(\w*)$/);
-    if (!m){ popEl.classList.remove('open'); return; }
-    const q=m[1].toLowerCase();
-    const cands = projectMembers(state.currentProjectId)
-      .filter(x => x.user.id!==state.me.id &&
-                   (x.user.display_name||'').toLowerCase().startsWith(q));
-    if (!cands.length){ popEl.classList.remove('open'); return; }
-    popEl.innerHTML = cands.map(c =>
-      `<div class="mention-opt" data-name="${escapeHtml(c.user.display_name)}">
-        ${avatarHtml(c.user)}<span>${escapeHtml(c.user.display_name)}</span>
-        <span class="mention-opt-role">${c.role}</span></div>`).join('');
-    popEl.classList.add('open');
-    popEl.querySelectorAll('.mention-opt').forEach(opt => {
-      opt.addEventListener('mousedown', e => {
-        e.preventDefault();
-        const name=opt.dataset.name, start=before.lastIndexOf('@');
-        inputEl.value = val.slice(0,start)+'@'+name+' '+val.slice(pos);
-        popEl.classList.remove('open'); inputEl.focus();
-        const np=start+name.length+2; inputEl.setSelectionRange(np,np);
-      });
-    });
-  });
-  inputEl.addEventListener('blur', () => setTimeout(()=>popEl.classList.remove('open'),120));
-}
-setupMention($('noteInput'), $('mentionPop'));
-
-// Mention disimpan sebagai baris di tabel `mentions`. Trigger di database
-// yang membuat notifikasinya, bukan kode ini.
-async function saveMentions(text, { stampId, replyId }){
-  const names = [...text.matchAll(/@(\w+)/g)].map(m => userByName(m[1])).filter(Boolean);
-  const ids = [...new Set(names.map(u => u.id))].filter(id => id !== state.me.id);
-  if (!ids.length) return;
-  const rows = ids.map(uid => ({
-    stamp_id: stampId || null, reply_id: replyId || null,
-    mentioned_user: uid, created_by: state.me.id
-  }));
-  const { error } = await sb.from('mentions').insert(rows);
-  if (error) console.error('mentions', error);
-}
-
-/* =====================================================================
-   STAMPS + REPLIES
-   ===================================================================== */
-function setStampColor(hex){
-  state.selectedColor=hex;
-  document.querySelectorAll('.swatch').forEach(sw =>
-    sw.classList.toggle('selected', sw.dataset.color===hex));
-  $('composerColor').style.background=hex;
-}
-
-function openStampComposer(color, pauseFirst){
-  if (!state.currentVideoId) return;
-  if (!canReview(state.currentProjectId)){
-    alert('Hanya Reviewer yang bisa menambah revisi di project ini.\nKamu di sini berperan sebagai Editor — kamu bisa membalas revisi yang ada.');
-    return;
-  }
-  if (!playerReady) return;
-  if (color) setStampColor(color);
-  if (pauseFirst && player.getPlayerState()===YT.PlayerState.PLAYING) player.pauseVideo();
-  state.pendingStampTime = player.getCurrentTime();
-  $('addStampTime').textContent = formatTime(state.pendingStampTime);
-  $('composerColor').style.background = state.selectedColor;
-  $('noteComposer').classList.add('open');
-  $('noteInput').value=''; $('noteInput').focus();
-}
-
-$('addStampBtn').addEventListener('click', () => openStampComposer(null,false));
-$('shortcutBtn').addEventListener('click', () => openModal('shortcutModal'));
-$('cancelNoteBtn').addEventListener('click', () => {
-  $('noteComposer').classList.remove('open'); state.pendingStampTime=null;
-});
-$('saveNoteBtn').addEventListener('click', saveStamp);
-$('noteInput').addEventListener('keydown', e => {
-  if (e.key==='Enter' && !$('mentionPop').classList.contains('open')) saveStamp();
-});
-document.querySelectorAll('.swatch').forEach(sw =>
-  sw.addEventListener('click', () => setStampColor(sw.dataset.color)));
-
-async function saveStamp(){
-  const note=$('noteInput').value.trim();
-  if (!note || state.pendingStampTime===null) return;
-  const btn=$('saveNoteBtn'); btn.disabled=true;
-
-  const { data, error } = await sb.from('stamps').insert({
-    video_id: state.currentVideoId,
-    timestamp_seconds: Math.round(state.pendingStampTime*10)/10,
-    color: state.selectedColor, note, created_by: state.me.id
-  }).select().single();
-  btn.disabled=false;
-  if (error) return fail(error,'menyimpan revisi');
-
-  await saveMentions(note, { stampId:data.id });
-
-  const v = state.videos.find(x => x.id===state.currentVideoId);
-  if (v.status !== 'needs_revision')
-    await sb.from('videos').update({ status:'needs_revision' }).eq('id', v.id);
-
-  state.pendingStampTime=null;
-  $('noteComposer').classList.remove('open');
-  await loadAll(); renderStamps(); renderVideoList(); renderBells();
-  renderApproveButton(state.videos.find(x=>x.id===state.currentVideoId));
-}
-
-function renderStampMarkers(){
-  document.querySelectorAll('.stamp-marker').forEach(el=>el.remove());
-  if (!playerReady || !player.getDuration) return;
-  const dur=player.getDuration()||1, scrubber=$('scrubber');
-  state.stamps.filter(s=>s.video_id===state.currentVideoId).forEach(s => {
-    const m=document.createElement('div');
-    m.className='stamp-marker';
-    m.style.left=Math.min(100,(s.timestamp_seconds/dur)*100)+'%';
-    m.style.background=s.color;
-    m.title=formatTime(s.timestamp_seconds)+' — '+s.note;
-    m.addEventListener('click', ev => { ev.stopPropagation(); player.seekTo(s.timestamp_seconds,true); });
-    scrubber.appendChild(m);
-  });
-}
-
-function renderStamps(){
-  const list=$('stampsList'), pid=state.currentProjectId;
-  const mine = state.stamps.filter(s=>s.video_id===state.currentVideoId)
-    .sort((a,b)=>a.timestamp_seconds-b.timestamp_seconds);
-  const open = mine.filter(s=>s.status==='open').length;
-  $('stampsCount').textContent = mine.length ? `${mine.length} total · ${open} terbuka` : '0 total';
-
-  const role = myRoleIn(pid);
-  $('stampsFooter').textContent =
-    role==='master'   ? 'Master: akses penuh di semua project'
-  : role==='reviewer' ? 'Reviewer: kamu bisa menambah revisi dan menyetujui draft'
-  :                     'Editor: kamu bisa membalas dan menandai revisi selesai';
-
-  if (!state.currentVideoId){
-    list.innerHTML='<div class="stamps-empty">Pilih draft video dulu untuk melihat revisinya.</div>';
-    return;
-  }
-  if (!mine.length){
-    list.innerHTML = canReview(pid)
-      ? '<div class="stamps-empty">Belum ada revisi. Putar video, berhenti di posisi yang mau dikomentari, lalu klik "Tambah revisi".</div>'
-      : '<div class="stamps-empty">Belum ada revisi dari reviewer untuk draft ini.</div>';
-    renderStampMarkers(); return;
-  }
-
-  list.innerHTML='';
-  mine.forEach(s => {
-    const author=userById(s.created_by);
-    const resolver=userById(s.resolved_by);
-    const canToggle = isEditorIn(pid) || s.created_by===state.me.id || state.me.is_master;
-    const replies = state.replies.filter(r=>r.stamp_id===s.id)
-      .sort((a,b)=>new Date(a.created_at)-new Date(b.created_at));
-
-    const item=document.createElement('div');
-    item.className='stamp-item'+(s.status==='done'?' done':'');
-    item.innerHTML=`
-      <div class="stamp-main">
-        <div class="stamp-dot" style="background:${s.color}"></div>
-        <div class="stamp-body">
-          <div class="stamp-top">
-            <span class="stamp-time">${formatTime(s.timestamp_seconds)}</span>
-            <span class="stamp-author">${escapeHtml(author?author.display_name:'?')}</span>
-          </div>
-          <div class="stamp-note ${s.status==='done'?'done-text':''}">${renderMentions(s.note)}</div>
-          <div class="stamp-actions">
-            <span class="stamp-toggle ${s.status==='open'?'is-open':'is-done'} ${canToggle?'':'locked'}">
-              ${s.status==='open'?'Terbuka':'Selesai — '+escapeHtml(resolver?resolver.display_name:'')}</span>
-            <span class="reply-link">Balas${replies.length?' ('+replies.length+')':''}</span>
-          </div>
+  state.projects.forEach(p => {
+    const card = document.createElement('div');
+    card.className = 'gallery-card';
+    const deadlineText = p.delivery_deadline ? new Date(p.delivery_deadline).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'No deadline';
+    
+    card.innerHTML = `
+      <div class="card-banner" style="background: ${p.cover_color || '#1E293B'}">
+        ${p.logo_url ? `<img src="${p.logo_url}" alt="Logo">` : `<div class="card-banner-text">${p.name.substring(0,2).toUpperCase()}</div>`}
+        ${state.me.is_master ? `<button class="card-edit-btn" data-id="${p.id}">Edit</button>` : ''}
+      </div>
+      <div class="card-content">
+        <div class="card-title">${p.name}</div>
+        <div class="card-client">${p.client_name || 'Internal'}</div>
+        <div class="card-meta-row">
+          <span class="card-deadline">⏱ ${deadlineText}</span>
+          <span class="tag tag-draft">${state.videos.filter(v => v.project_id === p.id).length} Videos</span>
         </div>
       </div>
-      ${replies.length ? '<div class="replies">'+replies.map(r=>{
-        const ru=userById(r.created_by);
-        return `<div class="reply"><div class="reply-top">
-          <span class="reply-author">${escapeHtml(ru?ru.display_name:'?')}</span>
-          <span class="reply-time">${timeAgo(r.created_at)}</span></div>
-          <div class="reply-body">${renderMentions(r.body)}</div></div>`;
-      }).join('')+'</div>' : ''}
-      <div class="reply-form">
-        <div class="mention-pop"></div>
-        <div class="reply-form-row">
-          <input type="text" class="reply-input" placeholder="Tulis balasan... ketik @ untuk menyebut">
-          <button class="btn btn-sm">Kirim</button>
-        </div>
-        <div class="reply-hint">Semua anggota project bisa membalas, termasuk editor</div>
-      </div>`;
+    `;
 
-    item.querySelector('.stamp-main').addEventListener('click', ev => {
-      if (ev.target.classList.contains('stamp-toggle')) return;
-      if (ev.target.classList.contains('reply-link')) return;
-      if (playerReady) player.seekTo(s.timestamp_seconds, true);
-    });
-
-    item.querySelector('.stamp-toggle').addEventListener('click', async ev => {
-      ev.stopPropagation();
-      if (!canToggle){ alert('Hanya Editor di project ini atau pembuat revisi yang bisa mengubah statusnya.'); return; }
-      const next = s.status==='open' ? 'done' : 'open';
-      const { error } = await sb.from('stamps').update({ status:next }).eq('id', s.id);
-      if (error) return fail(error,'mengubah status revisi');
-      await loadAll(); renderStamps(); renderVideoList(); renderBells();
-    });
-
-    const form=item.querySelector('.reply-form');
-    const rInput=item.querySelector('.reply-input');
-    const rPop=form.querySelector('.mention-pop');
-    setupMention(rInput, rPop);
-    item.querySelector('.reply-link').addEventListener('click', ev => {
-      ev.stopPropagation(); form.classList.toggle('open');
-      if (form.classList.contains('open')) rInput.focus();
-    });
-
-    async function sendReply(){
-      const body=rInput.value.trim(); if (!body) return;
-      const { data, error } = await sb.from('stamp_replies').insert({
-        stamp_id:s.id, body, created_by:state.me.id }).select().single();
-      if (error) return fail(error,'mengirim balasan');
-      await saveMentions(body, { replyId:data.id });
-      await loadAll(); renderStamps(); renderBells();
-    }
-    item.querySelector('.reply-form .btn').addEventListener('click', ev => { ev.stopPropagation(); sendReply(); });
-    rInput.addEventListener('keydown', ev => {
-      ev.stopPropagation();
-      if (ev.key==='Enter' && !rPop.classList.contains('open')) sendReply();
-    });
-
-    list.appendChild(item);
+    card.onclick = (e) => {
+      if (e.target.classList.contains('card-edit-btn')) {
+        openEditProjectModal(p);
+      } else {
+        openWorkspace(p.id);
+      }
+    };
+    grid.appendChild(card);
   });
-  renderStampMarkers();
 }
 
-/* =====================================================================
-   USER SETTINGS
-   ===================================================================== */
-let pendingPhoto = null;
-
-function openSettings(){
-  pendingPhoto = state.me.avatar_url || '';
-  $('smEmail').textContent = state.me.email;
-  $('smName').value = state.me.display_name;
-  paintAvatarPreview(); $('smPhotoFile').value=''; refreshPermStatus();
-  openModal('settingsModal','smName');
+function openEditProjectModal(project) {
+  state.editingProjectId = project.id;
+  $('peName').value = project.name;
+  $('peClient').value = project.client_name || '';
+  $('peDeadline').value = project.delivery_deadline || '';
+  $('peCoverColor').value = project.cover_color || '#1E293B';
+  $('peLogo').value = project.logo_url || '';
+  openModal('projectEditModal');
 }
-function paintAvatarPreview(){
-  const el=$('smAvatarPreview');
-  el.style.background = state.me.avatar_color || '#8B8F98';
-  el.innerHTML = pendingPhoto ? `<img src="${escapeHtml(pendingPhoto)}" alt="">`
-    : escapeHtml(($('smName').value || state.me.display_name || '?')[0]);
+
+$('peSave').onclick = async () => {
+  const id = state.editingProjectId;
+  await sb.from('projects').update({
+    name: $('peName').value.trim(),
+    client_name: $('peClient').value.trim(),
+    delivery_deadline: $('peDeadline').value || null,
+    cover_color: $('peCoverColor').value,
+    logo_url: $('peLogo').value.trim() || null
+  }).eq('id', id);
+  closeModal('projectEditModal');
+  await loadData();
+  renderProjectGrid();
+};
+
+$('pmSave').onclick = async () => {
+  const name = $('pmName').value.trim();
+  if (!name) return;
+  await sb.from('projects').insert({
+    name,
+    client_name: $('pmClient').value.trim() || null,
+    delivery_deadline: $('pmDeadline').value || null,
+    cover_color: $('pmCoverColor').value,
+    logo_url: $('pmLogo').value.trim() || null,
+    created_by: state.me.id
+  });
+  closeModal('projectModal');
+  await loadData();
+  renderProjectGrid();
+};
+
+/* ================= WORKSPACE ================= */
+function openWorkspace(projectId) {
+  state.currentProjectId = projectId;
+  const project = state.projects.find(p => p.id === projectId);
+
+  $('dashboard').style.display = 'none';
+  $('workspace').style.display = 'flex';
+  $('wsProjectName').textContent = project.name;
+  $('wsProjectClient').textContent = project.client_name ? `/ ${project.client_name}` : '';
+  $('wsDeadlineTag').textContent = project.delivery_deadline ? `Due: ${project.delivery_deadline}` : 'No Deadline';
+
+  renderWorkspaceVideos();
 }
-$('smName').addEventListener('input', () => { if (!pendingPhoto) paintAvatarPreview(); });
 
-$('smPhotoFile').addEventListener('change', async e => {
-  const f=e.target.files[0]; if (!f) return;
-  const url = await uploadMedia(f, 'avatars');
-  if (url){ pendingPhoto=url; paintAvatarPreview(); }
-});
-$('smRemovePhoto').addEventListener('click', () => {
-  pendingPhoto=''; $('smPhotoFile').value=''; paintAvatarPreview();
-});
+$('backBtn').onclick = () => {
+  destroyPlayer();
+  $('workspace').style.display = 'none';
+  $('dashboard').style.display = 'flex';
+};
 
-$('smSave').addEventListener('click', async () => {
-  const newName=$('smName').value.trim();
-  if (!newName){ $('smName').focus(); return; }
-  const clash = state.profiles.find(u => u.id!==state.me.id &&
-    (u.display_name||'').toLowerCase()===newName.toLowerCase());
-  if (clash){
-    alert('Nama "'+newName+'" sudah dipakai orang lain.\nKarena dipakai untuk @mention, tidak boleh ada dua yang sama.');
-    return;
-  }
-  if (/\s/.test(newName)){
-    alert('Nama tampilan tidak boleh mengandung spasi, karena dipakai untuk @mention.\nContoh: Bagas, BagasW, Bagas_W');
-    return;
-  }
-  const { error } = await sb.from('profiles').update({
-    display_name:newName, avatar_url: pendingPhoto || null }).eq('id', state.me.id);
-  if (error) return fail(error,'menyimpan profil');
-  closeModal('settingsModal');
-  await loadAll();
-  state.me = state.profiles.find(p => p.id===state.me.id);
-  $('dashUserName').textContent=state.me.display_name;
-  $('wsUserName').textContent=state.me.display_name;
-  repaintCurrentView();
-});
+function renderWorkspaceVideos() {
+  const pVids = state.videos.filter(v => v.project_id === state.currentProjectId);
+  const nav = $('videoNavList');
+  nav.innerHTML = '';
 
-function refreshPermStatus(){
-  const el=$('smPermStatus'), btn=$('smPermBtn');
-  if (!('Notification' in window)){
-    el.innerHTML='<span style="color:var(--danger)">Browser ini tidak mendukung notifikasi.</span>';
-    btn.style.display='none'; return;
-  }
-  const p=Notification.permission;
-  if (p==='granted'){
-    el.innerHTML='<span style="color:var(--teal)">Aktif — notifikasi muncul selama tab terbuka.</span>';
-    btn.style.display='none';
-  } else if (p==='denied'){
-    el.innerHTML='<span style="color:var(--danger)">Diblokir. Aktifkan lewat ikon gembok di address bar.</span>';
-    btn.style.display='none';
-  } else {
-    el.innerHTML='<span style="color:var(--text-dim)">Belum diizinkan.</span>';
-    btn.style.display='inline-block';
+  // Kelompokkan unik by Title
+  const titles = [...new Set(pVids.map(v => v.title))];
+
+  titles.forEach(title => {
+    const item = document.createElement('div');
+    item.className = 'video-nav-item';
+    item.textContent = title;
+    item.onclick = () => selectVideoGroup(title);
+    nav.appendChild(item);
+  });
+
+  if (titles.length > 0) {
+    selectVideoGroup(titles[0]);
   }
 }
-$('smPermBtn').addEventListener('click', () => {
-  if ('Notification' in window) Notification.requestPermission().then(refreshPermStatus);
-});
-$('smTestNotif').addEventListener('click', () => {
-  if (!('Notification' in window)) return alert('Browser ini tidak mendukung notifikasi.');
-  if (Notification.permission!=='granted') return alert('Izinkan notifikasi dulu.');
-  desktopNotify('TDR Revision Hub','Contoh notifikasi: ada revisi baru di draft kamu');
-});
-$('dashSettingsBtn').addEventListener('click', openSettings);
-$('wsSettingsBtn').addEventListener('click', openSettings);
 
-/* =====================================================================
-   KEYBOARD SHORTCUTS
-   ===================================================================== */
-function isTyping(el){
-  if (!el) return false;
-  const t=el.tagName;
-  return t==='INPUT'||t==='TEXTAREA'||t==='SELECT'||el.isContentEditable;
-}
-function anyModalOpen(){ return document.querySelector('.modal-backdrop.open')!==null; }
-const COLOR_KEYS={ '1':'#E8A33D','2':'#C4634A','3':'#3E7A72','4':'#7C8AE0' };
+function selectVideoGroup(title) {
+  const drafts = state.videos.filter(v => v.project_id === state.currentProjectId && v.title === title)
+                             .sort((a, b) => a.draft_number - b.draft_number);
+  
+  const select = $('draftSelect');
+  select.innerHTML = '';
+  drafts.forEach(d => {
+    const opt = document.createElement('option');
+    opt.value = d.id;
+    opt.textContent = `Draft ${d.draft_number}`;
+    select.appendChild(opt);
+  });
 
-document.addEventListener('keydown', e => {
-  if (e.key==='Escape' && $('noteComposer').classList.contains('open')){
-    $('noteComposer').classList.remove('open'); state.pendingStampTime=null; return;
+  select.onchange = () => loadDraftVideo(select.value);
+  if (drafts.length > 0) {
+    select.value = drafts[drafts.length - 1].id;
+    loadDraftVideo(select.value);
   }
-  if (isTyping(e.target)) return;
-  if (anyModalOpen()) return;
-  if ($('workspace').style.display !== 'flex') return;
-  if (e.metaKey||e.ctrlKey||e.altKey) return;
+}
 
-  if (COLOR_KEYS[e.key]){ e.preventDefault(); openStampComposer(COLOR_KEYS[e.key], true); return; }
-  if (!playerReady) return;
+/* ================= YOUTUBE PLAYER & SCRUBBER ================= */
+let ytPlayer = null, playerReady = false, pollTimer = null;
 
-  switch (e.key){
-    case ' ':
-      e.preventDefault();
-      if (player.getPlayerState()===YT.PlayerState.PLAYING) player.pauseVideo();
-      else player.playVideo();
-      break;
-    case 'ArrowLeft':
-      e.preventDefault();
-      player.seekTo(Math.max(0, player.getCurrentTime()-(e.shiftKey?1:5)), true); break;
-    case 'ArrowRight':
-      e.preventDefault();
-      player.seekTo(Math.min(player.getDuration(), player.getCurrentTime()+(e.shiftKey?1:5)), true); break;
-    case 'ArrowUp':
-    case 'ArrowDown': {
-      e.preventDefault();
-      const vids=currentProjectVideos();
-      const i=vids.findIndex(v=>v.id===state.currentVideoId);
-      if (i===-1) break;
-      const next = e.key==='ArrowUp'? i-1 : i+1;
-      if (next>=0 && next<vids.length) selectVideo(vids[next].id);
-      break;
+function loadDraftVideo(videoId) {
+  state.currentVideoId = videoId;
+  const video = state.videos.find(v => v.id === videoId);
+  if (!video) return;
+
+  destroyPlayer();
+  const holder = document.createElement('div');
+  holder.id = 'ytPlayer';
+  $('frameWrap').innerHTML = '';
+  $('frameWrap').appendChild(holder);
+
+  const shield = document.createElement('div');
+  shield.className = 'player-shield';
+  shield.onclick = togglePlay;
+  $('frameWrap').appendChild(shield);
+
+  ytPlayer = new YT.Player('ytPlayer', {
+    videoId: video.youtube_id,
+    playerVars: { controls: 0, disablekb: 1, rel: 0 },
+    events: {
+      onReady: () => {
+        playerReady = true;
+        $('totalTimeLabel').textContent = formatTime(ytPlayer.getDuration());
+        startPolling();
+        renderStamps();
+      }
     }
-  }
-});
-
-/* =====================================================================
-   MODAL UTIL
-   ===================================================================== */
-function openModal(id, focusId){
-  $(id).classList.add('open');
-  if (focusId) setTimeout(()=>$(focusId).focus(),40);
+  });
 }
-function closeModal(id){ $(id).classList.remove('open'); }
-document.querySelectorAll('[data-close]').forEach(b =>
-  b.addEventListener('click', ()=>closeModal(b.dataset.close)));
-document.querySelectorAll('.modal-backdrop').forEach(bd =>
-  bd.addEventListener('click', e => { if (e.target===bd) bd.classList.remove('open'); }));
-document.addEventListener('keydown', e => {
-  if (e.key==='Escape')
-    document.querySelectorAll('.modal-backdrop.open').forEach(m=>m.classList.remove('open'));
+
+function destroyPlayer() {
+  if (pollTimer) clearInterval(pollTimer);
+  if (ytPlayer && ytPlayer.destroy) ytPlayer.destroy();
+  ytPlayer = null;
+  playerReady = false;
+}
+
+function startPolling() {
+  pollTimer = setInterval(() => {
+    if (!playerReady || !ytPlayer || !ytPlayer.getCurrentTime) return;
+    const cur = ytPlayer.getCurrentTime();
+    const dur = ytPlayer.getDuration() || 1;
+    $('currentTimeLabel').textContent = formatTime(cur);
+    $('scrubberFill').style.width = ((cur/dur)*100) + '%';
+    $('scrubberPlayhead').style.left = ((cur/dur)*100) + '%';
+  }, 250);
+}
+
+function togglePlay() {
+  if (!playerReady) return;
+  if (ytPlayer.getPlayerState() === YT.PlayerState.PLAYING) {
+    ytPlayer.pauseVideo();
+    $('playPauseBtn').textContent = '▶ Play';
+  } else {
+    ytPlayer.playVideo();
+    $('playPauseBtn').textContent = '⏸ Pause';
+  }
+}
+$('playPauseBtn').onclick = togglePlay;
+
+$('scrubber').onclick = (e) => {
+  if (!playerReady) return;
+  const rect = $('scrubber').getBoundingClientRect();
+  const pct = (e.clientX - rect.left) / rect.width;
+  ytPlayer.seekTo(pct * ytPlayer.getDuration(), true);
+};
+
+/* ================= EDIT / NEW VIDEO ================= */
+$('editVideoBtn').onclick = () => {
+  const v = state.videos.find(x => x.id === state.currentVideoId);
+  if (!v) return;
+  state.editingVideoId = v.id;
+  $('vmModalTitle').textContent = 'Edit Video / Draft';
+  $('vmTitle').value = v.title;
+  $('vmUrl').value = `https://youtu.be/${v.youtube_id}`;
+  $('vmDraft').value = v.draft_number;
+  openModal('videoModal');
+};
+
+$('addVideoBtn').onclick = () => {
+  state.editingVideoId = null;
+  $('vmModalTitle').textContent = 'Add New Video Draft';
+  $('vmTitle').value = '';
+  $('vmUrl').value = '';
+  $('vmDraft').value = 1;
+  openModal('videoModal');
+};
+
+$('vmSave').onclick = async () => {
+  const title = $('vmTitle').value.trim();
+  const url = $('vmUrl').value.trim();
+  const draft = parseInt($('vmDraft').value, 10) || 1;
+  const ytId = extractYouTubeId(url);
+  if (!title || !ytId) return alert('Invalid Title or YouTube Link');
+
+  if (state.editingVideoId) {
+    await sb.from('videos').update({ title, youtube_id: ytId, draft_number: draft }).eq('id', state.editingVideoId);
+  } else {
+    await sb.from('videos').insert({
+      project_id: state.currentProjectId,
+      title, youtube_id: ytId, draft_number: draft, uploaded_by: state.me.id
+    });
+  }
+  closeModal('videoModal');
+  await loadData();
+  renderWorkspaceVideos();
+};
+
+/* ================= STAMPS & MULTI-DRAFT CARRYOVER ================= */
+$('addStampBtn').onclick = () => {
+  if (!playerReady) return;
+  ytPlayer.pauseVideo();
+  $('noteComposer').classList.add('open');
+  $('noteInput').focus();
+};
+$('cancelNoteBtn').onclick = () => $('noteComposer').classList.remove('open');
+
+$('saveNoteBtn').onclick = async () => {
+  const note = $('noteInput').value.trim();
+  if (!note || !playerReady) return;
+  const time = ytPlayer.getCurrentTime();
+
+  await sb.from('stamps').insert({
+    video_id: state.currentVideoId,
+    timestamp_seconds: Math.round(time * 10) / 10,
+    note,
+    created_by: state.me.id,
+    color: '#0D6EFD'
+  });
+
+  $('noteInput').value = '';
+  $('noteComposer').classList.remove('open');
+  await loadData();
+  renderStamps();
+};
+
+function renderStamps() {
+  const list = $('stampsList');
+  list.innerHTML = '';
+
+  const activeVideo = state.videos.find(v => v.id === state.currentVideoId);
+  if (!activeVideo) return;
+
+  // Temukan draft-draft untuk judul video yang sama
+  const siblingDrafts = state.videos
+    .filter(v => v.project_id === state.currentProjectId && v.title === activeVideo.title)
+    .sort((a,b) => a.draft_number - b.draft_number);
+
+  // Ambil stamp draft aktif + draft-draft sebelumnya
+  const visibleStamps = [];
+  siblingDrafts.forEach(d => {
+    if (d.draft_number <= activeVideo.draft_number) {
+      const draftStamps = state.stamps.filter(s => s.video_id === d.id);
+      draftStamps.forEach(s => visibleStamps.push({ ...s, draft_number: d.draft_number, isPrevious: d.draft_number < activeVideo.draft_number }));
+    }
+  });
+
+  $('stampsSummary').textContent = `${visibleStamps.length} Notes`;
+
+  visibleStamps.sort((a,b) => a.timestamp_seconds - b.timestamp_seconds).forEach(s => {
+    const card = document.createElement('div');
+    card.className = `stamp-card ${s.isPrevious ? 'archived-draft' : ''}`;
+    card.innerHTML = `
+      <div class="stamp-header">
+        <span class="stamp-timestamp">⏱ ${formatTime(s.timestamp_seconds)}</span>
+        <span class="tag tag-draft" style="font-size: 10px;">Draft ${s.draft_number}</span>
+      </div>
+      <div class="stamp-note">${s.note}</div>
+      <div style="font-size: 11px; color: var(--text-muted);">${s.status === 'done' ? '✓ Resolved' : 'Open'}</div>
+    `;
+    card.onclick = () => { if (playerReady) ytPlayer.seekTo(s.timestamp_seconds, true); };
+    list.appendChild(card);
+  });
+}
+
+/* ================= MODAL UTILS ================= */
+function openModal(id) { $(id).classList.add('open'); }
+function closeModal(id) { $(id).classList.remove('open'); }
+document.querySelectorAll('[data-close]').forEach(b => {
+  b.onclick = () => closeModal(b.dataset.close);
 });
 
-/* =====================================================================
-   BOOT
-   ===================================================================== */
-(async function boot(){
-  if (SUPABASE_URL.startsWith('PASTE')){
-    $('configWarning').style.display='block';
-    $('loginBtn').disabled = true;
-    return;
-  }
-  const { data:{ session } } = await sb.auth.getSession();
-  if (session) await afterLogin();
-})();
-
+// Auto-start
+bootApp();
 </script>
 </body>
 </html>
