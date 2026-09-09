@@ -44,6 +44,8 @@
   .btn-primary:hover { background: #0b5ed7; border-color: #0a58ca; }
   .btn-ghost { background: transparent; border-color: transparent; box-shadow: none; color: var(--text-muted); }
   .btn-ghost:hover { background: var(--surface-hover); color: var(--text-main); }
+  .btn-approve { background: var(--teal); border-color: var(--teal); color: #fff; }
+  .btn-approve:hover { background: #059669; }
   .btn-sm { padding: 4px 9px; font-size: 11.5px; }
 
   .input { background: var(--surface); border: 1px solid var(--border-dark); color: var(--text-main); padding: 8px 11px; border-radius: var(--radius-sm); font-size: 13px; width: 100%; transition: border-color .15s; }
@@ -52,6 +54,9 @@
   .field-label { font-size: 12px; font-weight: 600; color: var(--text-muted); margin-bottom: 5px; display: block; }
 
   .badge { font-size: 10.5px; padding: 2px 8px; border-radius: 20px; font-weight: 600; display: inline-flex; align-items: center; gap: 4px; }
+  .badge-approved { background: var(--teal-dim); color: #065F46; }
+  .badge-review { background: var(--amber-dim); color: #92400E; }
+  .badge-revision { background: var(--danger-dim); color: #991B1B; }
   .badge-draft { background: var(--surface-muted); color: var(--text-muted); font-family: var(--font-mono); }
   .role-chip { font-size: 11px; padding: 2px 8px; border-radius: 10px; font-weight: 600; }
   .role-chip.reviewer { background: var(--amber-dim); color: #92400E; }
@@ -126,13 +131,16 @@
   .mine-flag { font-size: 9.5px; padding: 1px 6px; border-radius: 8px; background: var(--violet-dim); color: var(--violet); font-weight: 600; }
 
   #workspace { display: none; height: 100vh; flex-direction: column; background: var(--surface); }
-  .ws-body { flex: 1; display: grid; grid-template-columns: 260px 1fr 360px; min-height: 0; }
+  .ws-body { flex: 1; display: grid; grid-template-columns: 280px 1fr 370px; min-height: 0; }
   .sidebar { border-right: 1px solid var(--border); background: var(--bg); display: flex; flex-direction: column; overflow: hidden; }
   .sidebar-head { padding: 12px 16px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; font-weight: 600; font-size: 13px; }
   .video-list { flex: 1; overflow-y: auto; padding: 8px; }
-  .video-item { padding: 10px 12px; border-radius: var(--radius-sm); margin-bottom: 4px; cursor: pointer; transition: background .12s; }
+  
+  .video-item { padding: 11px 13px; border-radius: var(--radius-sm); margin-bottom: 6px; cursor: pointer; transition: all .12s; border: 1px solid transparent; background: transparent; }
   .video-item:hover { background: var(--surface-hover); }
-  .video-item.active { background: var(--surface); box-shadow: var(--shadow-sm); border: 1px solid var(--border); font-weight: 600; }
+  .video-item.active { background: var(--surface); box-shadow: var(--shadow-sm); border-color: var(--border-dark); font-weight: 600; }
+  .video-item-title { font-size: 13.5px; margin-bottom: 4px; line-height: 1.35; color: var(--text-main); }
+  .video-item-meta { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; font-size: 11px; font-weight: 400; color: var(--text-muted); }
 
   .center { display: flex; flex-direction: column; background: #0E1013; overflow: hidden; }
   .player-header { padding: 10px 20px; border-bottom: 1px solid var(--border); background: var(--surface); display: flex; align-items: center; justify-content: space-between; gap: 12px; }
@@ -148,7 +156,7 @@
   .scrubber-track { position: absolute; top: 50%; left: 0; right: 0; height: 4px; background: var(--border-dark); transform: translateY(-50%); border-radius: 2px; }
   .scrubber-fill { position: absolute; top: 50%; left: 0; height: 4px; background: var(--text-main); transform: translateY(-50%); border-radius: 2px; pointer-events: none; }
   .scrubber-playhead { position: absolute; top: 50%; width: 12px; height: 12px; background: var(--text-main); border-radius: 50%; transform: translate(-50%, -50%); pointer-events: none; }
-  .stamp-marker { position: absolute; top: 50%; width: 8px; height: 8px; border-radius: 50%; transform: translate(-50%, -50%); cursor: pointer; border: 1.5px solid #fff; z-index: 2; }
+  .stamp-marker { position: absolute; top: 50%; width: 9px; height: 9px; border-radius: 50%; transform: translate(-50%, -50%); cursor: pointer; border: 1.5px solid #fff; z-index: 2; }
 
   .controls-row { display: flex; align-items: center; justify-content: space-between; }
   .controls-left { display: flex; align-items: center; gap: 8px; }
@@ -171,15 +179,21 @@
   .stamps-panel-head { padding: 14px 18px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: baseline; font-weight: 600; }
   .stamps-list { flex: 1; overflow-y: auto; padding: 12px; }
   
-  .draft-section-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-muted); margin: 12px 0 6px; display: flex; align-items: center; gap: 8px; }
+  .draft-section-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-muted); margin: 14px 0 8px; display: flex; align-items: center; gap: 8px; }
   .draft-section-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
-  .stamp-card { border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px; margin-bottom: 10px; background: var(--surface); box-shadow: var(--shadow-sm); }
-  .stamp-card.archived-draft { opacity: 0.85; background: #FBFBFD; border-left: 3px solid var(--amber); }
+  
+  .stamp-card { border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px; margin-bottom: 10px; background: var(--surface); box-shadow: var(--shadow-sm); cursor: pointer; transition: all .12s ease; }
+  .stamp-card:hover { border-color: var(--border-dark); box-shadow: 0 2px 6px rgba(0,0,0,0.06); }
+  .stamp-card.is-done-card { opacity: 0.6; background: #F8F9FA; }
+  .stamp-card.is-done-card .stamp-note { text-decoration: line-through; color: var(--text-muted); }
+  .stamp-card.archived-draft { border-left: 3px solid var(--amber); }
+
   .stamp-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
-  .stamp-timestamp { font-family: var(--font-mono); font-size: 11.5px; font-weight: 600; color: var(--brand-primary); cursor: pointer; }
-  .stamp-note { font-size: 13px; margin-bottom: 8px; word-break: break-word; }
+  .stamp-timestamp { font-family: var(--font-mono); font-size: 11.5px; font-weight: 600; color: var(--brand-primary); }
+  .stamp-note { font-size: 13px; margin-bottom: 8px; word-break: break-word; color: var(--text-main); }
   .stamp-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 6px; }
-  .stamp-toggle { font-size: 11px; padding: 2px 8px; border-radius: 10px; cursor: pointer; border: 1px solid var(--border-dark); }
+  
+  .stamp-toggle { font-size: 11px; padding: 2px 8px; border-radius: 10px; cursor: pointer; border: 1px solid var(--border-dark); font-weight: 600; transition: all .12s; }
   .stamp-toggle.is-open { background: var(--amber-dim); color: #92400E; border-color: transparent; }
   .stamp-toggle.is-done { background: var(--teal-dim); color: #065F46; border-color: transparent; }
   
@@ -276,6 +290,7 @@
   </div>
 
   <div class="ws-body">
+    <!-- Left Panel: Videos -->
     <div class="sidebar">
       <div class="sidebar-head">
         <span>Videos</span>
@@ -284,6 +299,7 @@
       <div class="video-list" id="videoNavList"></div>
     </div>
 
+    <!-- Center Panel: YouTube Player -->
     <div class="center">
       <div class="player-header">
         <div style="display: flex; align-items: center; gap: 8px;">
@@ -337,6 +353,7 @@
       </div>
     </div>
 
+    <!-- Right Panel: Revisions -->
     <div class="stamps-panel">
       <div class="stamps-panel-head">
         <span>Revisions</span>
@@ -438,7 +455,7 @@
     <h3>Keyboard Shortcuts</h3>
     <p class="modal-sub">Active while not typing inside text inputs</p>
     <div style="display: flex; flex-direction: column; gap: 10px; font-size: 13px;">
-      <div><span class="kbd">1</span> <span class="kbd">2</span> <span class="kbd">3</span> <span class="kbd">4</span> : Pause & open revision note with chosen color</div>
+      <div><span class="kbd">1</span> <span class="kbd">2</span> <span class="kbd">3</span> <span class="kbd">4</span> : Pause & open revision note with color</div>
       <div><span class="kbd">Space</span> : Play / Pause video</div>
       <div><span class="kbd">←</span> <span class="kbd">→</span> : Seek 5 seconds backward / forward</div>
       <div><span class="kbd">Shift</span> + <span class="kbd">←</span> <span class="kbd">→</span> : Seek 1 second</div>
@@ -535,6 +552,9 @@ function scheduleRefresh() {
     renderBells();
     if ($('workspace').style.display === 'flex') {
       renderStamps();
+      renderWorkspaceVideos();
+      const curV = state.videos.find(v => v.id === state.currentVideoId);
+      if (curV) renderApproveButton(curV);
     } else if ($('dashboard').style.display === 'flex') {
       renderProjectGrid();
       renderTaskPanel();
@@ -820,6 +840,7 @@ $('backBtn').onclick = () => {
   renderTaskPanel();
 };
 
+/* SIDEBAR: VIDEO GROUPS DENGAN INFO LENGKAP */
 function renderWorkspaceVideos() {
   const pVids = state.videos.filter(v => v.project_id === state.currentProjectId);
   const nav = $('videoNavList');
@@ -827,9 +848,30 @@ function renderWorkspaceVideos() {
   const titles = [...new Set(pVids.map(v => v.title))];
 
   titles.forEach(title => {
+    const drafts = pVids.filter(v => v.title === title).sort((a, b) => a.draft_number - b.draft_number);
+    const latestDraft = drafts[drafts.length - 1];
+    const draftIds = drafts.map(d => d.id);
+    const openCount = state.stamps.filter(s => draftIds.includes(s.video_id) && s.status === 'open').length;
+    const approvedDraft = drafts.find(d => d.status === 'approved');
+
+    let statusBadgeHtml = '';
+    if (approvedDraft) {
+      statusBadgeHtml = `<span class="badge badge-approved" style="font-size:10px;">Approved on D${approvedDraft.draft_number}</span>`;
+    } else {
+      statusBadgeHtml = `<span class="badge badge-review" style="font-size:10px;">In Review</span>`;
+    }
+
     const item = document.createElement('div');
     item.className = 'video-item' + (title === state.selectedVideoTitle ? ' active' : '');
-    item.textContent = title;
+    item.innerHTML = `
+      <div class="video-item-title">${escapeHtml(title)}</div>
+      <div class="video-item-meta">
+        <span class="badge badge-draft">Draft ${latestDraft ? latestDraft.draft_number : 1}</span>
+        ${statusBadgeHtml}
+        <span>·</span>
+        <span style="${openCount > 0 ? 'color:var(--amber);font-weight:600;' : ''}">${openCount} open rev</span>
+      </div>
+    `;
     item.onclick = () => selectVideoGroup(title);
     nav.appendChild(item);
   });
@@ -848,7 +890,11 @@ function renderWorkspaceVideos() {
 
 function selectVideoGroup(title) {
   state.selectedVideoTitle = title;
-  document.querySelectorAll('.video-item').forEach(el => el.classList.toggle('active', el.textContent === title));
+  document.querySelectorAll('.video-item').forEach(el => {
+    const t = el.querySelector('.video-item-title');
+    el.classList.toggle('active', t && t.textContent === title);
+  });
+  
   const drafts = state.videos.filter(v => v.project_id === state.currentProjectId && v.title === title)
                              .sort((a, b) => a.draft_number - b.draft_number);
   
@@ -868,6 +914,7 @@ function selectVideoGroup(title) {
   }
 }
 
+/* YOUTUBE PLAYER & SCRUBBER */
 let ytPlayer = null, playerReady = false, pollTimer = null;
 
 function loadDraftVideo(videoId) {
@@ -886,6 +933,8 @@ function loadDraftVideo(videoId) {
   shield.onclick = togglePlay;
   $('frameWrap').appendChild(shield);
 
+  renderApproveButton(video);
+
   ytPlayer = new YT.Player('ytPlayer', {
     videoId: video.youtube_id,
     playerVars: { controls: 0, disablekb: 1, rel: 0, modestbranding: 1 },
@@ -899,6 +948,53 @@ function loadDraftVideo(videoId) {
       }
     }
   });
+}
+
+/* APPROVE BUTTON COMPONENT */
+function renderApproveButton(v) {
+  const slot = $('approveSlot');
+  const role = myRoleIn(state.currentProjectId);
+  const isApproved = v.status === 'approved';
+  const approver = userById(v.approved_by);
+
+  if (isApproved) {
+    slot.innerHTML = `
+      <div style="display:flex;align-items:center;gap:6px;">
+        <span class="badge badge-approved" style="font-size:11.5px;padding:4px 9px;">
+          ✓ Approved on Draft ${v.draft_number} ${approver ? '(' + approver.display_name + ')' : ''}
+        </span>
+        ${canReview(state.currentProjectId) ? `<button class="btn btn-ghost btn-sm" id="cancelApproveBtn">Cancel</button>` : ''}
+      </div>
+    `;
+    const cBtn = $('cancelApproveBtn');
+    if (cBtn) {
+      cBtn.onclick = async () => {
+        await sb.from('videos').update({ status: 'in_review' }).eq('id', v.id);
+        await loadAll();
+        const updated = state.videos.find(x => x.id === v.id);
+        renderApproveButton(updated);
+        renderWorkspaceVideos();
+      };
+    }
+  } else {
+    if (canReview(state.currentProjectId)) {
+      slot.innerHTML = `<button class="btn btn-approve btn-sm" id="approveDraftBtn">✓ Approve Draft ${v.draft_number}</button>`;
+      $('approveDraftBtn').onclick = async () => {
+        const siblingDrafts = state.videos.filter(x => x.project_id === state.currentProjectId && x.title === v.title);
+        const draftIds = siblingDrafts.map(x => x.id);
+        const openRev = state.stamps.filter(s => draftIds.includes(s.video_id) && s.status === 'open').length;
+        if (openRev > 0 && !confirm(`There are still ${openRev} open revisions. Approve anyway?`)) return;
+
+        await sb.from('videos').update({ status: 'approved' }).eq('id', v.id);
+        await loadAll();
+        const updated = state.videos.find(x => x.id === v.id);
+        renderApproveButton(updated);
+        renderWorkspaceVideos();
+      };
+    } else {
+      slot.innerHTML = `<span class="badge badge-review" style="font-size:11.5px;padding:4px 9px;">Pending Reviewer Approval</span>`;
+    }
+  }
 }
 
 function destroyPlayer() {
@@ -1017,7 +1113,7 @@ function openStampComposer(color, pauseFirst) {
 $('addStampBtn').onclick = () => openStampComposer(null, false);
 $('cancelNoteBtn').onclick = () => { $('noteComposer').classList.remove('open'); state.pendingStampTime = null; };
 
-/* MENTIONS WITH UP/DOWN/ENTER NAVIGATION */
+/* MENTIONS NAVIGATION */
 let mentionIndex = 0;
 let mentionCandidates = [];
 
@@ -1126,23 +1222,35 @@ async function saveStamp() {
   await loadAll();
   renderStamps();
   renderStampMarkers();
+  renderWorkspaceVideos();
 }
 
+/* SCRUBBER MARKERS (Current + Previous) */
 function renderStampMarkers() {
   document.querySelectorAll('.stamp-marker').forEach(el => el.remove());
   if (!playerReady || !ytPlayer.getDuration) return;
   const dur = ytPlayer.getDuration() || 1, scrubber = $('scrubber');
-  state.stamps.filter(s => s.video_id === state.currentVideoId).forEach(s => {
+  
+  const activeVideo = state.videos.find(v => v.id === state.currentVideoId);
+  if (!activeVideo) return;
+  const siblingDrafts = state.videos.filter(v => v.project_id === state.currentProjectId && v.title === activeVideo.title);
+  const draftIds = siblingDrafts.map(d => d.id);
+
+  state.stamps.filter(s => draftIds.includes(s.video_id)).forEach(s => {
     const m = document.createElement('div');
     m.className = 'stamp-marker';
     m.style.left = Math.min(100, (s.timestamp_seconds / dur) * 100) + '%';
     m.style.background = s.color;
     m.title = `${formatTime(s.timestamp_seconds)} — ${s.note}`;
-    m.onclick = (ev) => { ev.stopPropagation(); ytPlayer.seekTo(s.timestamp_seconds, true); };
+    m.onclick = (ev) => {
+      ev.stopPropagation();
+      ytPlayer.seekTo(s.timestamp_seconds, true);
+    };
     scrubber.appendChild(m);
   });
 }
 
+/* REVISIONS LIST RENDERING */
 function renderStamps() {
   const list = $('stampsList');
   list.innerHTML = '';
@@ -1162,9 +1270,7 @@ function renderStamps() {
       draftStamps.forEach(s => currentDraftStamps.push({ ...s, draft_number: d.draft_number }));
     } else if (d.draft_number < activeVideo.draft_number) {
       draftStamps.forEach(s => {
-        if (s.status === 'open') {
-          previousDraftStamps.push({ ...s, draft_number: d.draft_number, isPrevious: true });
-        }
+        previousDraftStamps.push({ ...s, draft_number: d.draft_number, isPrevious: true });
       });
     }
   });
@@ -1180,10 +1286,10 @@ function renderStamps() {
     const replies = state.replies.filter(r => r.stamp_id === s.id).sort((a,b) => new Date(a.created_at) - new Date(b.created_at));
 
     const card = document.createElement('div');
-    card.className = `stamp-card ${s.isPrevious ? 'archived-draft' : ''}`;
+    card.className = `stamp-card ${s.status === 'done' ? 'is-done-card' : ''} ${s.isPrevious ? 'archived-draft' : ''}`;
     card.innerHTML = `
       <div class="stamp-header">
-        <span class="stamp-timestamp" data-time="${s.timestamp_seconds}">⏱ ${formatTime(s.timestamp_seconds)}</span>
+        <span class="stamp-timestamp">⏱ ${formatTime(s.timestamp_seconds)}</span>
         <div style="display:flex;gap:6px;align-items:center">
           <span class="badge badge-draft">Draft ${s.draft_number}</span>
           <span class="stamp-toggle ${s.status === 'open' ? 'is-open' : 'is-done'}">${s.status === 'open' ? 'Open' : '✓ Done'}</span>
@@ -1207,24 +1313,38 @@ function renderStamps() {
       </div>
     `;
 
-    card.querySelector('.stamp-timestamp').onclick = () => { if (playerReady) ytPlayer.seekTo(s.timestamp_seconds, true); };
-    card.querySelector('.stamp-toggle').onclick = async () => {
-      if (!canToggle) return alert('Only assigned editors or reviewers can toggle status.');
-      const next = s.status === 'open' ? 'done' : 'open';
-      await sb.from('stamps').update({ status: next }).eq('id', s.id);
-      await loadAll(); renderStamps();
+    // Klik di mana saja pada bubble chat/card langsung mengarahkan ke timestamp detik video
+    card.onclick = (e) => {
+      if (e.target.closest('.stamp-toggle') || e.target.closest('.reply-link') || e.target.closest('.reply-form')) {
+        return;
+      }
+      if (playerReady) ytPlayer.seekTo(s.timestamp_seconds, true);
     };
 
+    // Toggle status (Open <-> Done)
+    card.querySelector('.stamp-toggle').onclick = async (e) => {
+      e.stopPropagation();
+      if (!canToggle) return alert('Only assigned editors, reviewers, or creator can toggle status.');
+      const next = s.status === 'open' ? 'done' : 'open';
+      await sb.from('stamps').update({ status: next }).eq('id', s.id);
+      await loadAll();
+      renderStamps();
+      renderWorkspaceVideos();
+    };
+
+    // Reply form toggle
     const form = card.querySelector('.reply-form');
     const rInput = form.querySelector('.reply-input');
     const rPop = form.querySelector('.mention-pop');
     setupMention(rInput, rPop);
-    card.querySelector('.reply-link').onclick = () => {
+    card.querySelector('.reply-link').onclick = (e) => {
+      e.stopPropagation();
       form.classList.toggle('open');
       if (form.classList.contains('open')) rInput.focus();
     };
 
-    const sendReply = async () => {
+    const sendReply = async (e) => {
+      if (e) e.stopPropagation();
       const body = rInput.value.trim(); if (!body) return;
       const { data } = await sb.from('stamp_replies').insert({ stamp_id: s.id, body, created_by: state.me.id }).select().single();
       await saveMentions(body, { replyId: data.id });
@@ -1238,7 +1358,7 @@ function renderStamps() {
   if (previousDraftStamps.length > 0) {
     const prevHeader = document.createElement('div');
     prevHeader.className = 'draft-section-label';
-    prevHeader.textContent = 'Unresolved from Previous Drafts';
+    prevHeader.textContent = 'From Previous Drafts';
     list.appendChild(prevHeader);
     previousDraftStamps.forEach(s => list.appendChild(renderCard(s)));
   }
@@ -1285,11 +1405,9 @@ document.addEventListener('keydown', e => {
     return;
   }
 
-  // SHORTCUTS: Panah Atas / Bawah untuk ganti draft vs ganti video
   if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
     e.preventDefault();
     if (e.shiftKey) {
-      // Shift + Atas/Bawah = Pindah Antar Video
       const pVids = state.videos.filter(v => v.project_id === state.currentProjectId);
       const titles = [...new Set(pVids.map(v => v.title))];
       const curIdx = titles.indexOf(state.selectedVideoTitle);
@@ -1298,7 +1416,6 @@ document.addEventListener('keydown', e => {
         selectVideoGroup(titles[nextIdx]);
       }
     } else {
-      // Panah Atas/Bawah biasa = Pindah Antar Draft
       const select = $('draftSelect');
       if (select && select.options.length > 1) {
         const curOpt = select.selectedIndex;
