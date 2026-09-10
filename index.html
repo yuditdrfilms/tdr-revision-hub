@@ -168,7 +168,8 @@
   .scrubber-track { position: absolute; top: 50%; left: 0; right: 0; height: 4px; background: var(--border-dark); transform: translateY(-50%); border-radius: 2px; }
   .scrubber-fill { position: absolute; top: 50%; left: 0; height: 4px; background: var(--text-main); transform: translateY(-50%); border-radius: 2px; pointer-events: none; }
   .scrubber-playhead { position: absolute; top: 50%; width: 12px; height: 12px; background: var(--text-main); border-radius: 50%; transform: translate(-50%, -50%); pointer-events: none; }
-  .stamp-marker { position: absolute; top: 50%; width: 9px; height: 9px; border-radius: 50%; transform: translate(-50%, -50%); cursor: pointer; border: 1.5px solid #fff; z-index: 2; }
+  .stamp-marker { position: absolute; top: 50%; width: 9px; height: 9px; border-radius: 50%; transform: translate(-50%, -50%); cursor: pointer; z-index: 2; transition: transform .1s; }
+  .stamp-marker:hover { transform: translate(-50%, -50%) scale(1.4); }
 
   .controls-row { display: flex; align-items: center; justify-content: space-between; }
   .controls-left { display: flex; align-items: center; gap: 8px; }
@@ -969,7 +970,6 @@ $('backBtn').onclick = () => {
   renderTaskPanel();
 };
 
-/* SIDEBAR: MENAMPILKAN SEMUA EDITOR UNIK PADA VIDEO TERSEBUT */
 function renderWorkspaceVideos() {
   const pVids = state.videos.filter(v => v.project_id === state.currentProjectId);
   const nav = $('videoNavList');
@@ -983,7 +983,6 @@ function renderWorkspaceVideos() {
     const openCount = state.stamps.filter(s => draftIds.includes(s.video_id) && s.status === 'open').length;
     const approvedDraft = drafts.find(d => d.status === 'approved');
 
-    // Himpun semua nama editor yang mengunggah draft di judul video ini
     const uploaderIds = [...new Set(drafts.map(d => d.uploaded_by).filter(Boolean))];
     const editorNames = uploaderIds.map(uid => {
       const u = userById(uid);
@@ -1056,6 +1055,7 @@ function selectVideoGroup(title) {
 }
 
 let ytPlayer = null, playerReady = false, pollTimer = null;
+let lastKnownDuration = 0;
 
 function updateActiveDraftEditor(video) {
   const el = $('activeDraftEditor');
@@ -1070,6 +1070,9 @@ function loadDraftVideo(videoId) {
   if (!video) return;
 
   destroyPlayer();
+  lastKnownDuration = 0;
+  $('totalTimeLabel').textContent = '00:00';
+
   const holder = document.createElement('div');
   holder.id = 'ytPlayer';
   $('frameWrap').innerHTML = '';
@@ -1089,10 +1092,18 @@ function loadDraftVideo(videoId) {
     events: {
       onReady: () => {
         playerReady = true;
-        $('totalTimeLabel').textContent = formatTime(ytPlayer.getDuration());
         startPolling();
         renderStamps();
-        renderStampMarkers();
+      },
+      onStateChange: (e) => {
+        if (e.data === YT.PlayerState.PLAYING) {
+          const dur = ytPlayer.getDuration();
+          if (dur > 0 && dur !== lastKnownDuration) {
+            lastKnownDuration = dur;
+            $('totalTimeLabel').textContent = formatTime(dur);
+            renderStampMarkers();
+          }
+        }
       }
     }
   });
@@ -1153,13 +1164,24 @@ function destroyPlayer() {
 }
 
 function startPolling() {
+  if (pollTimer) clearInterval(pollTimer);
   pollTimer = setInterval(() => {
     if (!playerReady || !ytPlayer || !ytPlayer.getCurrentTime) return;
     const cur = ytPlayer.getCurrentTime();
-    const dur = ytPlayer.getDuration() || 1;
+    const dur = ytPlayer.getDuration() || 0;
+
+    if (dur > 0 && dur !== lastKnownDuration) {
+      lastKnownDuration = dur;
+      $('totalTimeLabel').textContent = formatTime(dur);
+      renderStampMarkers();
+    }
+
     $('currentTimeLabel').textContent = formatTime(cur);
-    $('scrubberFill').style.width = ((cur/dur)*100) + '%';
-    $('scrubberPlayhead').style.left = ((cur/dur)*100) + '%';
+    if (dur > 0) {
+      const pct = Math.min(100, (cur / dur) * 100);
+      $('scrubberFill').style.width = pct + '%';
+      $('scrubberPlayhead').style.left = pct + '%';
+    }
     $('addStampTime').textContent = formatTime(cur);
   }, 250);
 }
@@ -1180,7 +1202,7 @@ $('scrubber').onclick = (e) => {
   if (!playerReady || e.target.classList.contains('stamp-marker')) return;
   const rect = $('scrubber').getBoundingClientRect();
   const pct = (e.clientX - rect.left) / rect.width;
-  ytPlayer.seekTo(pct * ytPlayer.getDuration(), true);
+  ytPlayer.seekTo(pct * (lastKnownDuration || ytPlayer.getDuration()), true);
 };
 
 $('editVideoBtn').onclick = () => {
@@ -1370,28 +1392,43 @@ async function saveStamp() {
   renderWorkspaceVideos();
 }
 
-/* SCRUBBER MARKERS (Current + Previous) */
+/* SCRUBBER MARKERS (DRAFT AKTIF = WARNA ASLI, DRAFT SEBELUMNYA = ABU-ABU, DONE = HILANG) */
 function renderStampMarkers() {
   document.querySelectorAll('.stamp-marker').forEach(el => el.remove());
   if (!playerReady || !ytPlayer.getDuration) return;
-  const dur = ytPlayer.getDuration() || 1, scrubber = $('scrubber');
   
+  const dur = lastKnownDuration || ytPlayer.getDuration();
+  if (!dur || dur <= 0) return;
+
+  const scrubber = $('scrubber');
   const activeVideo = state.videos.find(v => v.id === state.currentVideoId);
   if (!activeVideo) return;
-  const siblingDrafts = state.videos.filter(v => v.project_id === state.currentProjectId && v.title === activeVideo.title);
-  const draftIds = siblingDrafts.map(d => d.id);
 
-  state.stamps.filter(s => draftIds.includes(s.video_id)).forEach(s => {
-    const m = document.createElement('div');
-    m.className = 'stamp-marker';
-    m.style.left = Math.min(100, (s.timestamp_seconds / dur) * 100) + '%';
-    m.style.background = s.color;
-    m.title = `${formatTime(s.timestamp_seconds)} — ${s.note}`;
-    m.onclick = (ev) => {
-      ev.stopPropagation();
-      ytPlayer.seekTo(s.timestamp_seconds, true);
-    };
-    scrubber.appendChild(m);
+  const siblingDrafts = state.videos.filter(v => v.project_id === state.currentProjectId && v.title === activeVideo.title);
+
+  siblingDrafts.forEach(d => {
+    const isCurrent = (d.draft_number === activeVideo.draft_number);
+    const draftStamps = state.stamps.filter(s => s.video_id === d.id);
+
+    draftStamps.forEach(s => {
+      // Jika dari draft sebelumnya dan sudah done, sembunyikan dari scrubber
+      if (!isCurrent && s.status === 'done') return;
+
+      const m = document.createElement('div');
+      m.className = 'stamp-marker';
+      const pct = Math.min(100, Math.max(0, (s.timestamp_seconds / dur) * 100));
+      m.style.left = pct + '%';
+      
+      m.style.background = isCurrent ? s.color : '#9CA3AF';
+      m.style.border = isCurrent ? '1.5px solid #fff' : '1.5px solid #6B7280';
+      m.title = `Draft ${d.draft_number} - ${formatTime(s.timestamp_seconds)}: ${s.note}`;
+
+      m.onclick = (ev) => {
+        ev.stopPropagation();
+        ytPlayer.seekTo(s.timestamp_seconds, true);
+      };
+      scrubber.appendChild(m);
+    });
   });
 }
 
@@ -1472,6 +1509,7 @@ function renderStamps() {
       await sb.from('stamps').update({ status: next }).eq('id', s.id);
       await loadAll();
       renderStamps();
+      renderStampMarkers();
       renderWorkspaceVideos();
     };
 
@@ -1584,7 +1622,7 @@ document.addEventListener('keydown', e => {
       break;
     case 'ArrowRight':
       e.preventDefault();
-      ytPlayer.seekTo(Math.min(ytPlayer.getDuration(), ytPlayer.getCurrentTime() + (e.shiftKey ? 1 : 5)), true);
+      ytPlayer.seekTo(Math.min(lastKnownDuration || ytPlayer.getDuration(), ytPlayer.getCurrentTime() + (e.shiftKey ? 1 : 5)), true);
       break;
   }
 });
