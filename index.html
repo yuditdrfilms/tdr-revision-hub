@@ -46,6 +46,8 @@
   .btn-ghost:hover { background: var(--surface-hover); color: var(--text-main); }
   .btn-approve { background: var(--teal); border-color: var(--teal); color: #fff; }
   .btn-approve:hover { background: #059669; }
+  .btn-danger { background: var(--danger); border-color: var(--danger); color: #fff; }
+  .btn-danger:hover { background: #dc2626; }
   .btn-sm { padding: 4px 9px; font-size: 11.5px; }
 
   .input { background: var(--surface); border: 1px solid var(--border-dark); color: var(--text-main); padding: 8px 11px; border-radius: var(--radius-sm); font-size: 13px; width: 100%; transition: border-color .15s; }
@@ -106,20 +108,30 @@
   .card-banner { height: 120px; display: flex; align-items: center; justify-content: center; position: relative; padding: 16px; }
   .card-banner img { max-height: 80%; max-width: 80%; object-fit: contain; }
   .card-banner-text { font-size: 22px; font-weight: 700; color: #fff; text-shadow: 0 1px 3px rgba(0,0,0,0.25); }
-  .card-edit-btn { position: absolute; top: 8px; right: 8px; background: rgba(255,255,255,0.9); border-radius: 4px; border: none; padding: 4px 8px; font-size: 11px; font-weight: 600; color: var(--text-main); opacity: 0; transition: opacity .15s; cursor: pointer; }
-  .gallery-card:hover .card-edit-btn { opacity: 1; }
+  
+  .card-actions-overlay { position: absolute; top: 8px; right: 8px; display: flex; gap: 6px; opacity: 0; transition: opacity .15s; }
+  .gallery-card:hover .card-actions-overlay { opacity: 1; }
+  .card-action-mini { background: rgba(255,255,255,0.92); border-radius: 4px; border: none; padding: 4px 8px; font-size: 11px; font-weight: 600; color: var(--text-main); cursor: pointer; }
+  .card-action-mini:hover { background: #fff; }
+
   .card-content { padding: 14px 16px; flex: 1; display: flex; flex-direction: column; }
   .card-title { font-size: 14.5px; font-weight: 600; margin-bottom: 2px; }
   .card-client { font-size: 12px; color: var(--text-muted); margin-bottom: 12px; }
   .card-meta-row { margin-top: auto; display: flex; justify-content: space-between; align-items: center; font-size: 11.5px; color: var(--text-muted); border-top: 1px solid var(--border); padding-top: 10px; }
 
+  /* Tasks Panel with Tabs */
   .task-panel { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); box-shadow: var(--shadow-sm); position: sticky; top: 0; }
-  .task-head { padding: 13px 16px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; cursor: pointer; }
+  .task-head { padding: 12px 16px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; cursor: pointer; }
   .task-head h3 { font-size: 13px; font-weight: 600; }
   .task-caret { font-size: 11px; color: var(--text-muted); transition: transform .15s; }
   .task-panel.collapsed .task-caret { transform: rotate(-90deg); }
-  .task-panel.collapsed .task-list { display: none; }
-  .task-list { max-height: calc(100vh - 200px); overflow-y: auto; }
+  .task-panel.collapsed .task-list, .task-panel.collapsed .task-tabs-row { display: none; }
+  
+  .task-tabs-row { display: flex; border-bottom: 1px solid var(--border); background: #FAFBFD; padding: 0 8px; }
+  .task-tab-btn { flex: 1; text-align: center; padding: 8px 10px; font-size: 12px; font-weight: 600; color: var(--text-muted); cursor: pointer; border-bottom: 2px solid transparent; background: transparent; border-top: none; border-left: none; border-right: none; }
+  .task-tab-btn.active { color: var(--brand-primary); border-bottom-color: var(--brand-primary); }
+
+  .task-list { max-height: calc(100vh - 240px); overflow-y: auto; }
   .task-group { padding: 8px 16px 4px; font-size: 11px; color: var(--text-muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; background: #FAFBFD; border-bottom: 1px solid var(--border); border-top: 1px solid var(--border); }
   .task-item { padding: 10px 16px; border-bottom: 1px solid var(--border); cursor: pointer; display: flex; gap: 10px; transition: background .12s; }
   .task-item:hover { background: var(--surface-hover); }
@@ -191,7 +203,6 @@
   .stamp-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
   .stamp-timestamp { font-family: var(--font-mono); font-size: 11.5px; font-weight: 600; color: var(--brand-primary); }
   .stamp-note { font-size: 13px; margin-bottom: 8px; word-break: break-word; color: var(--text-main); }
-  .stamp-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 6px; }
   
   .stamp-toggle { font-size: 11px; padding: 2px 8px; border-radius: 10px; cursor: pointer; border: 1px solid var(--border-dark); font-weight: 600; transition: all .12s; }
   .stamp-toggle.is-open { background: var(--amber-dim); color: #92400E; border-color: transparent; }
@@ -202,9 +213,15 @@
   .reply-form { display: none; margin-top: 8px; margin-left: 12px; position: relative; }
   .reply-form.open { display: block; }
 
+  /* Team Modal Styling */
+  .assign-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border); }
+  .assign-user-info { display: flex; align-items: center; gap: 10px; }
+  .assign-avatar { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 12px; color: #fff; }
+
   .modal-backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.45); align-items: center; justify-content: center; z-index: 100; backdrop-filter: blur(2px); }
   .modal-backdrop.open { display: flex; }
   .modal { width: 460px; max-height: 90vh; overflow-y: auto; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); }
+  .modal.wide { width: 520px; }
   .modal h3 { font-size: 16px; font-weight: 700; margin-bottom: 4px; }
   .modal-sub { font-size: 12px; color: var(--text-muted); margin-bottom: 18px; }
   .modal-field { margin-bottom: 14px; }
@@ -261,10 +278,15 @@
         <div class="gallery-grid" id="projectGrid"></div>
       </div>
 
+      <!-- Open Tasks Panel with Filter Tabs -->
       <div class="task-panel" id="taskPanel">
         <div class="task-head" id="taskHead">
           <h3>Open Tasks (<span id="taskCount">0</span>)</h3>
           <span class="task-caret">▼</span>
+        </div>
+        <div class="task-tabs-row">
+          <button class="task-tab-btn active" id="taskTabForMe">Assigned to Me</button>
+          <button class="task-tab-btn" id="taskTabAll">All Tasks</button>
         </div>
         <div class="task-list" id="taskList"></div>
       </div>
@@ -290,7 +312,6 @@
   </div>
 
   <div class="ws-body">
-    <!-- Left Panel: Videos -->
     <div class="sidebar">
       <div class="sidebar-head">
         <span>Videos</span>
@@ -299,7 +320,6 @@
       <div class="video-list" id="videoNavList"></div>
     </div>
 
-    <!-- Center Panel: YouTube Player -->
     <div class="center">
       <div class="player-header">
         <div style="display: flex; align-items: center; gap: 8px;">
@@ -353,7 +373,6 @@
       </div>
     </div>
 
-    <!-- Right Panel: Revisions -->
     <div class="stamps-panel">
       <div class="stamps-panel-head">
         <span>Revisions</span>
@@ -368,7 +387,7 @@
 <div class="modal-backdrop" id="projectModal">
   <div class="modal">
     <h3>New Project</h3>
-    <p class="modal-sub">Create workspace project card</p>
+    <p class="modal-sub">Create project card and configure team members</p>
     <div class="modal-field">
       <label class="field-label">Project Name</label>
       <input type="text" class="input" id="pmName" placeholder="e.g. Commercial Reel 2026">
@@ -391,15 +410,16 @@
     </div>
     <div class="modal-actions">
       <button class="btn btn-ghost" data-close="projectModal">Cancel</button>
-      <button class="btn btn-primary" id="pmSave">Create Project</button>
+      <button class="btn btn-primary" id="pmSave">Continue to Team &rarr;</button>
     </div>
   </div>
 </div>
 
+<!-- Modal: Edit Project (With Delete Button) -->
 <div class="modal-backdrop" id="projectEditModal">
   <div class="modal">
     <h3>Edit Project Details</h3>
-    <p class="modal-sub">Update project configuration & schedule</p>
+    <p class="modal-sub">Update configuration or delete project</p>
     <div class="modal-field">
       <label class="field-label">Project Name</label>
       <input type="text" class="input" id="peName">
@@ -420,9 +440,24 @@
       <label class="field-label">Client Logo URL</label>
       <input type="text" class="input" id="peLogo">
     </div>
+    <div class="modal-actions" style="justify-content: space-between;">
+      <button class="btn btn-danger" id="peDeleteBtn">Delete Project</button>
+      <div style="display: flex; gap: 8px;">
+        <button class="btn btn-ghost" data-close="projectEditModal">Cancel</button>
+        <button class="btn btn-primary" id="peSave">Save Changes</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Team Assignment -->
+<div class="modal-backdrop" id="teamModal">
+  <div class="modal wide">
+    <h3 id="teamModalTitle">Team Members</h3>
+    <p class="modal-sub">Assign reviewers and video editors to this project</p>
+    <div id="assignList" style="margin-bottom: 16px;"></div>
     <div class="modal-actions">
-      <button class="btn btn-ghost" data-close="projectEditModal">Cancel</button>
-      <button class="btn btn-primary" id="peSave">Save Changes</button>
+      <button class="btn btn-primary" data-close="teamModal">Done</button>
     </div>
   </div>
 </div>
@@ -459,7 +494,7 @@
       <div><span class="kbd">Space</span> : Play / Pause video</div>
       <div><span class="kbd">←</span> <span class="kbd">→</span> : Seek 5 seconds backward / forward</div>
       <div><span class="kbd">Shift</span> + <span class="kbd">←</span> <span class="kbd">→</span> : Seek 1 second</div>
-      <div><span class="kbd">↑</span> <span class="kbd">↓</span> : Switch between Drafts (e.g. Draft 1 / 2)</div>
+      <div><span class="kbd">↑</span> <span class="kbd">↓</span> : Switch between Drafts</div>
       <div><span class="kbd">Shift</span> + <span class="kbd">↑</span> <span class="kbd">↓</span> : Switch between Videos</div>
       <div><span class="kbd">Enter</span> : Save revision note (or choose highlighted @mention)</div>
       <div><span class="kbd">Esc</span> : Cancel revision composer / close modal</div>
@@ -482,7 +517,8 @@ const state = {
   stamps: [], replies: [], notifs: [],
   currentProjectId: null, currentVideoId: null, selectedVideoTitle: null,
   selectedColor: '#E8A33D', pendingStampTime: null,
-  editingProjectId: null, editingVideoId: null
+  editingProjectId: null, editingVideoId: null,
+  taskFilter: 'mine' // 'mine' | 'all'
 };
 
 const $ = id => document.getElementById(id);
@@ -568,6 +604,7 @@ function subscribeRealtime() {
     .on('postgres_changes', { event: '*', schema: 'public', table: 'stamp_replies' }, scheduleRefresh)
     .on('postgres_changes', { event: '*', schema: 'public', table: 'videos' }, scheduleRefresh)
     .on('postgres_changes', { event: '*', schema: 'public', table: 'projects' }, scheduleRefresh)
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'project_members' }, scheduleRefresh)
     .on('postgres_changes', { event: '*', schema: 'public', table: 'notifications' }, scheduleRefresh)
     .subscribe();
 }
@@ -689,7 +726,12 @@ function renderProjectGrid() {
     card.innerHTML = `
       <div class="card-banner" style="background: ${p.cover_color || '#1E293B'}">
         ${p.logo_url ? `<img src="${p.logo_url}" alt="Logo">` : `<div class="card-banner-text">${p.name.substring(0,2).toUpperCase()}</div>`}
-        ${state.me.is_master ? `<button class="card-edit-btn" data-id="${p.id}">Edit</button>` : ''}
+        ${state.me.is_master ? `
+          <div class="card-actions-overlay">
+            <button class="card-action-mini team-btn" data-id="${p.id}">Team</button>
+            <button class="card-action-mini edit-btn" data-id="${p.id}">Edit</button>
+          </div>
+        ` : ''}
       </div>
       <div class="card-content">
         <div class="card-title">${escapeHtml(p.name)}</div>
@@ -702,8 +744,10 @@ function renderProjectGrid() {
     `;
 
     card.onclick = (e) => {
-      if (e.target.classList.contains('card-edit-btn')) {
+      if (e.target.classList.contains('edit-btn')) {
         openEditProjectModal(p);
+      } else if (e.target.classList.contains('team-btn')) {
+        openTeamModal(p.id);
       } else {
         openWorkspace(p.id);
       }
@@ -711,6 +755,20 @@ function renderProjectGrid() {
     grid.appendChild(card);
   });
 }
+
+/* OPEN TASKS WITH TABS */
+$('taskTabForMe').onclick = () => {
+  state.taskFilter = 'mine';
+  $('taskTabForMe').classList.add('active');
+  $('taskTabAll').classList.remove('active');
+  renderTaskPanel();
+};
+$('taskTabAll').onclick = () => {
+  state.taskFilter = 'all';
+  $('taskTabAll').classList.add('active');
+  $('taskTabForMe').classList.remove('active');
+  renderTaskPanel();
+};
 
 function myOpenTasks() {
   const out = [];
@@ -723,8 +781,12 @@ function myOpenTasks() {
       const isUploader = (v && v.uploaded_by === state.me.id);
       const mentionsMe = new RegExp('@' + state.me.display_name + '\\b', 'i').test(s.note);
 
-      if (state.me.is_master || isUploader || mentionsMe) {
+      if (state.taskFilter === 'all') {
         out.push({ stamp: s, video: v, project: p, mentionsMe, isUploader });
+      } else {
+        if (state.me.is_master || isUploader || mentionsMe) {
+          out.push({ stamp: s, video: v, project: p, mentionsMe, isUploader });
+        }
       }
     });
   });
@@ -740,7 +802,7 @@ function renderTaskPanel() {
   const tasks = myOpenTasks();
   $('taskCount').textContent = tasks.length;
   if (!tasks.length) {
-    list.innerHTML = '<div style="padding:28px 16px;text-align:center;color:var(--text-faint);font-size:12.5px;">No open revisions for you. All clear!</div>';
+    list.innerHTML = `<div style="padding:28px 16px;text-align:center;color:var(--text-faint);font-size:12.5px;">No open revisions ${state.taskFilter==='mine'?'for you':'in projects'}. All clear!</div>`;
     return;
   }
   let html = '', lastProject = null;
@@ -782,6 +844,7 @@ function renderTaskPanel() {
 }
 $('taskHead').onclick = () => $('taskPanel').classList.toggle('collapsed');
 
+/* EDIT / DELETE PROJECT */
 function openEditProjectModal(project) {
   state.editingProjectId = project.id;
   $('peName').value = project.name;
@@ -802,19 +865,87 @@ $('peSave').onclick = async () => {
   closeModal('projectEditModal');
   await loadAll(); renderProjectGrid(); renderTaskPanel();
 };
+$('peDeleteBtn').onclick = async () => {
+  const p = state.projects.find(x => x.id === state.editingProjectId);
+  if (!p) return;
+  if (!confirm(`Are you sure you want to permanently delete "${p.name}"? This action cannot be undone.`)) return;
+
+  const { error } = await sb.from('projects').delete().eq('id', p.id);
+  if (error) return alert('Failed to delete project: ' + error.message);
+
+  closeModal('projectEditModal');
+  await loadAll();
+  renderProjectGrid();
+  renderTaskPanel();
+};
+
+/* NEW PROJECT -> OPEN TEAM MODAL */
 $('pmSave').onclick = async () => {
   const name = $('pmName').value.trim();
   if (!name) return;
-  await sb.from('projects').insert({
+  const { data, error } = await sb.from('projects').insert({
     name, client_name: $('pmClient').value.trim() || null,
     delivery_deadline: $('pmDeadline').value || null,
     cover_color: $('pmCoverColor').value,
     logo_url: $('pmLogo').value.trim() || null,
     created_by: state.me.id
-  });
+  }).select().single();
+  if (error) return alert('Failed to create project: ' + error.message);
+
   closeModal('projectModal');
-  await loadAll(); renderProjectGrid(); renderTaskPanel();
+  await loadAll();
+  renderProjectGrid();
+  renderTaskPanel();
+  openTeamModal(data.id);
 };
+
+/* TEAM ASSIGNMENT MODAL */
+function openTeamModal(projectId) {
+  const project = state.projects.find(x => x.id === projectId);
+  if (!project) return;
+
+  $('teamModalTitle').textContent = `Team Assignment — ${project.name}`;
+  const list = $('assignList');
+  list.innerHTML = '';
+
+  state.profiles.filter(u => !u.is_master).forEach(u => {
+    const member = state.members.find(m => m.project_id === projectId && m.user_id === u.id);
+    const row = document.createElement('div');
+    row.className = 'assign-row';
+    row.innerHTML = `
+      <div class="assign-user-info">
+        <div class="assign-avatar" style="background: ${u.avatar_color || '#6B7280'}">${u.display_name.charAt(0).toUpperCase()}</div>
+        <div>
+          <div style="font-weight:600;">${escapeHtml(u.display_name)}</div>
+          <div style="font-size:11px;color:var(--text-muted);">${escapeHtml(u.email)}</div>
+        </div>
+      </div>
+      <select class="input" style="width: 140px; padding: 4px 8px;" data-uid="${u.id}">
+        <option value="">Not Involved</option>
+        <option value="reviewer" ${member && member.role === 'reviewer' ? 'selected' : ''}>Reviewer</option>
+        <option value="editor" ${member && member.role === 'editor' ? 'selected' : ''}>Editor</option>
+      </select>
+    `;
+
+    row.querySelector('select').onchange = async (e) => {
+      const role = e.target.value;
+      await sb.from('project_members').delete().eq('project_id', projectId).eq('user_id', u.id);
+      if (role) {
+        await sb.from('project_members').insert({
+          project_id: projectId,
+          user_id: u.id,
+          role: role,
+          added_by: state.me.id
+        });
+      }
+      await loadAll();
+    };
+
+    list.appendChild(row);
+  });
+
+  openModal('teamModal');
+}
 
 function openWorkspace(projectId) {
   state.currentProjectId = projectId;
@@ -840,7 +971,6 @@ $('backBtn').onclick = () => {
   renderTaskPanel();
 };
 
-/* SIDEBAR: VIDEO GROUPS DENGAN INFO LENGKAP */
 function renderWorkspaceVideos() {
   const pVids = state.videos.filter(v => v.project_id === state.currentProjectId);
   const nav = $('videoNavList');
@@ -914,7 +1044,6 @@ function selectVideoGroup(title) {
   }
 }
 
-/* YOUTUBE PLAYER & SCRUBBER */
 let ytPlayer = null, playerReady = false, pollTimer = null;
 
 function loadDraftVideo(videoId) {
@@ -950,10 +1079,8 @@ function loadDraftVideo(videoId) {
   });
 }
 
-/* APPROVE BUTTON COMPONENT */
 function renderApproveButton(v) {
   const slot = $('approveSlot');
-  const role = myRoleIn(state.currentProjectId);
   const isApproved = v.status === 'approved';
   const approver = userById(v.approved_by);
 
@@ -1225,7 +1352,7 @@ async function saveStamp() {
   renderWorkspaceVideos();
 }
 
-/* SCRUBBER MARKERS (Current + Previous) */
+/* SCRUBBER MARKERS */
 function renderStampMarkers() {
   document.querySelectorAll('.stamp-marker').forEach(el => el.remove());
   if (!playerReady || !ytPlayer.getDuration) return;
@@ -1313,7 +1440,6 @@ function renderStamps() {
       </div>
     `;
 
-    // Klik di mana saja pada bubble chat/card langsung mengarahkan ke timestamp detik video
     card.onclick = (e) => {
       if (e.target.closest('.stamp-toggle') || e.target.closest('.reply-link') || e.target.closest('.reply-form')) {
         return;
@@ -1321,7 +1447,6 @@ function renderStamps() {
       if (playerReady) ytPlayer.seekTo(s.timestamp_seconds, true);
     };
 
-    // Toggle status (Open <-> Done)
     card.querySelector('.stamp-toggle').onclick = async (e) => {
       e.stopPropagation();
       if (!canToggle) return alert('Only assigned editors, reviewers, or creator can toggle status.');
@@ -1332,7 +1457,6 @@ function renderStamps() {
       renderWorkspaceVideos();
     };
 
-    // Reply form toggle
     const form = card.querySelector('.reply-form');
     const rInput = form.querySelector('.reply-input');
     const rPop = form.querySelector('.mention-pop');
