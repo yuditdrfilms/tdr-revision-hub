@@ -520,8 +520,8 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://www.youtube.com/iframe_api"></script>
 <script>
-const SUPABASE_URL = 'https://yfntdcncuysabiyqxvfi.supabase.co';
-const SUPABASE_ANON_KEY = 'sb_publishable_WUoMF4XBdoPEChXrVy7UtA_IPKKTz4H';
+const SUPABASE_URL = 'https://api-revision.tdrfilms.com';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsImlzcyI6InN1cGFiYXNlLWRlbW8iLCJpYXQiOjE2NDE3NjkyMDAsImV4cCI6MTc5OTUzNTYwMH0.PJmgoWuunlFCHlGjz4er5axTFodiKKaBX5nYNmhsnj0';
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 const state = {
@@ -574,9 +574,17 @@ function canReview(pid) { const r = myRoleIn(pid); return r === 'reviewer' || r 
 function isEditorIn(pid) { return myRoleIn(pid) === 'editor'; }
 
 async function requestNotificationPermission() {
-  if (!('Notification' in window)) return;
-  if (Notification.permission === 'default') {
-    try { await Notification.requestPermission(); } catch(e){}
+  if (!('Notification' in window)) {
+    console.warn('Browser does not support desktop notifications.');
+    return;
+  }
+  if (Notification.permission !== 'granted') {
+    try {
+      const res = await Notification.requestPermission();
+      console.log('Notification permission status:', res);
+    } catch(e) {
+      console.error('Failed to request notification permission:', e);
+    }
   }
 }
 
@@ -711,8 +719,9 @@ function renderNotifPanel(prefix) {
   });
 }
 function wireBell(prefix) {
-  $(prefix + 'Bell').onclick = (e) => {
+  $(prefix + 'Bell').onclick = async (e) => {
     e.stopPropagation();
+    await requestNotificationPermission();
     const panel = $(prefix + 'NotifPanel');
     const wasOpen = panel.classList.contains('open');
     document.querySelectorAll('.notif-panel').forEach(x => x.classList.remove('open'));
@@ -757,7 +766,6 @@ async function bootApp() {
     $('newProjectBtn').onclick = () => openModal('projectModal');
   }
   
-  await requestNotificationPermission();
   subscribeRealtime();
   renderProjectGrid();
   renderTaskPanel();
@@ -1528,7 +1536,6 @@ async function saveMentions(text, { stampId, replyId }) {
 
 $('saveNoteBtn').onclick = saveStamp;
 
-/* SIMPAN STAMP TANPA ME-RELOAD/MERESET VIDEO KE AWAL */
 async function saveStamp() {
   const note = $('noteInput').value.trim();
   if (!note || state.pendingStampTime === null) return;
@@ -1552,7 +1559,6 @@ async function saveStamp() {
   state.pendingStampTime = null;
   $('noteComposer').classList.remove('open');
 
-  // Push langsung ke memory state agar video player tidak ter-reload dari detik 00:00
   state.stamps.push(data);
   state.stamps.sort((a,b) => a.timestamp_seconds - b.timestamp_seconds);
 
@@ -1561,7 +1567,6 @@ async function saveStamp() {
   renderWorkspaceVideos();
 }
 
-/* SCRUBBER MARKERS */
 function renderStampMarkers() {
   document.querySelectorAll('.stamp-marker').forEach(el => el.remove());
   if (!playerReady || !ytPlayer.getDuration) return;
@@ -1600,7 +1605,6 @@ function renderStampMarkers() {
   });
 }
 
-/* REVISIONS LIST: FILTER STRICT PROJECT & VIDEO AGAR TIDAK BOCOR KE VIDEO BARU */
 function renderStamps() {
   const list = $('stampsList');
   list.innerHTML = '';
@@ -1612,7 +1616,6 @@ function renderStamps() {
     return;
   }
 
-  // Ambil hanya draft dengan title dan project_id yang sama persis
   const siblingDrafts = state.videos
     .filter(v => v.project_id === state.currentProjectId && v.title === activeVideo.title)
     .sort((a,b) => a.draft_number - b.draft_number);
