@@ -378,7 +378,6 @@
       <div class="composer" id="noteComposer">
         <div class="mention-pop" id="mentionPop"></div>
         <div class="composer-color" id="composerColor" style="background:#E8A33D"></div>
-        <!-- Matikan browser autocomplete bawaan agar tidak bentrok -->
         <input type="text" class="input" id="noteInput" placeholder="Write revision note... type @ to mention someone" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
         <button class="btn btn-primary" id="saveNoteBtn">Save</button>
         <button class="btn btn-ghost" id="cancelNoteBtn">Cancel</button>
@@ -574,7 +573,6 @@ function myRoleIn(projectId) {
 function canReview(pid) { const r = myRoleIn(pid); return r === 'reviewer' || r === 'master'; }
 function isEditorIn(pid) { return myRoleIn(pid) === 'editor'; }
 
-/* BROWSER DESKTOP NOTIFICATIONS */
 async function requestNotificationPermission() {
   if (!('Notification' in window)) return;
   if (Notification.permission === 'default') {
@@ -1115,6 +1113,9 @@ function renderWorkspaceVideos() {
     destroyPlayer();
     $('draftSelect').innerHTML = '';
     $('activeDraftEditor').textContent = '';
+    state.currentVideoId = null;
+    state.selectedVideoTitle = null;
+    renderStamps();
   }
 }
 
@@ -1157,7 +1158,10 @@ function updateActiveDraftEditor(video) {
 function loadDraftVideo(videoId) {
   state.currentVideoId = videoId;
   const video = state.videos.find(v => v.id === videoId);
-  if (!video) return;
+  if (!video) {
+    renderStamps();
+    return;
+  }
 
   destroyPlayer();
   lastKnownDuration = 0;
@@ -1524,28 +1528,40 @@ async function saveMentions(text, { stampId, replyId }) {
 
 $('saveNoteBtn').onclick = saveStamp;
 
+/* SIMPAN STAMP TANPA ME-RELOAD/MERESET VIDEO KE AWAL */
 async function saveStamp() {
   const note = $('noteInput').value.trim();
   if (!note || state.pendingStampTime === null) return;
+  
+  const savedTime = state.pendingStampTime;
+  const btn = $('saveNoteBtn');
+  btn.disabled = true;
+
   const { data, error } = await sb.from('stamps').insert({
     video_id: state.currentVideoId,
-    timestamp_seconds: Math.round(state.pendingStampTime * 10) / 10,
+    timestamp_seconds: Math.round(savedTime * 10) / 10,
     color: state.selectedColor,
     note,
     created_by: state.me.id
   }).select().single();
+  
+  btn.disabled = false;
   if (error) return alert('Failed to save stamp: ' + error.message);
 
   await saveMentions(note, { stampId: data.id });
   state.pendingStampTime = null;
   $('noteComposer').classList.remove('open');
-  await loadAll();
+
+  // Push langsung ke memory state agar video player tidak ter-reload dari detik 00:00
+  state.stamps.push(data);
+  state.stamps.sort((a,b) => a.timestamp_seconds - b.timestamp_seconds);
+
   renderStamps();
   renderStampMarkers();
   renderWorkspaceVideos();
 }
 
-/* SCRUBBER MARKERS (DRAFT CURRENT = WARNA ASLI, PREVIOUS = ABU-ABU, DONE = HILANG) */
+/* SCRUBBER MARKERS */
 function renderStampMarkers() {
   document.querySelectorAll('.stamp-marker').forEach(el => el.remove());
   if (!playerReady || !ytPlayer.getDuration) return;
@@ -1584,13 +1600,19 @@ function renderStampMarkers() {
   });
 }
 
-/* REVISIONS LIST RENDERING */
+/* REVISIONS LIST: FILTER STRICT PROJECT & VIDEO AGAR TIDAK BOCOR KE VIDEO BARU */
 function renderStamps() {
   const list = $('stampsList');
   list.innerHTML = '';
-  const activeVideo = state.videos.find(v => v.id === state.currentVideoId);
-  if (!activeVideo) return;
+  
+  const activeVideo = state.videos.find(v => v.id === state.currentVideoId && v.project_id === state.currentProjectId);
+  if (!activeVideo) {
+    $('stampsSummary').textContent = '0 Notes';
+    list.innerHTML = '<div style="padding:24px 16px;text-align:center;color:var(--text-faint);font-size:12.5px;">No draft selected.</div>';
+    return;
+  }
 
+  // Ambil hanya draft dengan title dan project_id yang sama persis
   const siblingDrafts = state.videos
     .filter(v => v.project_id === state.currentProjectId && v.title === activeVideo.title)
     .sort((a,b) => a.draft_number - b.draft_number);
@@ -1659,7 +1681,7 @@ function renderStamps() {
       if (!canToggle) return alert('Only assigned editors, reviewers, or creator can toggle status.');
       const next = s.status === 'open' ? 'done' : 'open';
       await sb.from('stamps').update({ status: next }).eq('id', s.id);
-      await loadAll();
+      s.status = next;
       renderStamps();
       renderStampMarkers();
       renderWorkspaceVideos();
@@ -1680,7 +1702,8 @@ function renderStamps() {
       const body = rInput.value.trim(); if (!body) return;
       const { data } = await sb.from('stamp_replies').insert({ stamp_id: s.id, body, created_by: state.me.id }).select().single();
       await saveMentions(body, { replyId: data.id });
-      await loadAll(); renderStamps();
+      state.replies.push(data);
+      renderStamps();
     };
     form.querySelector('.send-reply-btn').onclick = sendReply;
 
