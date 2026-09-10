@@ -46,6 +46,8 @@
   .btn-ghost:hover { background: var(--surface-hover); color: var(--text-main); }
   .btn-approve { background: var(--teal); border-color: var(--teal); color: #fff; }
   .btn-approve:hover { background: #059669; }
+  .btn-notify { background: #F3E8FF; border-color: #D8B4FE; color: #6B21A8; }
+  .btn-notify:hover { background: #E9D5FF; }
   .btn-danger { background: var(--danger); border-color: var(--danger); color: #fff; }
   .btn-danger:hover { background: #dc2626; }
   .btn-sm { padding: 4px 9px; font-size: 11.5px; }
@@ -153,6 +155,13 @@
   .video-item-title { font-size: 13.5px; margin-bottom: 4px; line-height: 1.35; color: var(--text-main); }
   .video-item-meta { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; font-size: 11px; font-weight: 400; color: var(--text-muted); }
   .video-item-editors { font-size: 11px; color: var(--text-muted); font-weight: 500; margin-top: 3px; display: flex; align-items: center; gap: 4px; }
+
+  /* Completed Videos Section */
+  .completed-section-toggle { padding: 10px 12px; font-size: 12px; font-weight: 600; color: var(--text-muted); cursor: pointer; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border); background: #FAFBFD; margin-top: 6px; }
+  .completed-section-toggle:hover { color: var(--text-main); }
+  .completed-video-list { display: none; padding-top: 4px; }
+  .completed-video-list.open { display: block; }
+  .video-item.is-completed-item { opacity: 0.75; }
 
   .center { display: flex; flex-direction: column; background: #0E1013; overflow: hidden; }
   .player-header { padding: 10px 20px; border-bottom: 1px solid var(--border); background: var(--surface); display: flex; align-items: center; justify-content: space-between; gap: 12px; }
@@ -326,6 +335,7 @@
           <select class="input" id="draftSelect" style="width: 120px; padding: 4px 8px; font-weight: 600;"></select>
           <button class="btn btn-primary btn-sm" id="addNewDraftBtn">+ New Draft</button>
           <button class="btn btn-sm" id="editVideoBtn">Edit Link</button>
+          <button class="btn btn-notify btn-sm" id="notifyReviewerBtn" title="Send notification to Reviewer and Master">🔔 Notify Reviewer</button>
         </div>
         <div style="display: flex; align-items: center; gap: 10px;">
           <span id="activeDraftEditor" style="font-size: 12px; color: var(--text-muted); font-weight: 500;"></span>
@@ -462,6 +472,7 @@
   </div>
 </div>
 
+<!-- Modal: Edit Video Link / Delete Video & Draft -->
 <div class="modal-backdrop" id="videoModal">
   <div class="modal">
     <h3 id="vmModalTitle">Video Setup</h3>
@@ -478,9 +489,12 @@
       <label class="field-label">Draft Number</label>
       <input type="number" class="input" id="vmDraft" min="1" value="1">
     </div>
-    <div class="modal-actions">
-      <button class="btn btn-ghost" data-close="videoModal">Cancel</button>
-      <button class="btn btn-primary" id="vmSave">Save Video</button>
+    <div class="modal-actions" style="justify-content: space-between;" id="vmActionsRow">
+      <div id="vmDeleteArea" style="display: flex; gap: 6px;"></div>
+      <div style="display: flex; gap: 8px;">
+        <button class="btn btn-ghost" data-close="videoModal">Cancel</button>
+        <button class="btn btn-primary" id="vmSave">Save Video</button>
+      </div>
     </div>
   </div>
 </div>
@@ -518,7 +532,8 @@ const state = {
   currentProjectId: null, currentVideoId: null, selectedVideoTitle: null,
   selectedColor: '#E8A33D', pendingStampTime: null,
   editingProjectId: null, editingVideoId: null,
-  taskFilter: 'mine'
+  taskFilter: 'mine',
+  completedVideosOpen: false
 };
 
 const $ = id => document.getElementById(id);
@@ -970,17 +985,33 @@ $('backBtn').onclick = () => {
   renderTaskPanel();
 };
 
+/* SIDEBAR: ACTIVE VIDEOS + DROPDOWN COMPLETED VIDEOS */
 function renderWorkspaceVideos() {
   const pVids = state.videos.filter(v => v.project_id === state.currentProjectId);
   const nav = $('videoNavList');
   nav.innerHTML = '';
   const titles = [...new Set(pVids.map(v => v.title))];
 
+  const activeTitles = [];
+  const completedTitles = [];
+
   titles.forEach(title => {
     const drafts = pVids.filter(v => v.title === title).sort((a, b) => a.draft_number - b.draft_number);
-    const latestDraft = drafts[drafts.length - 1];
     const draftIds = drafts.map(d => d.id);
     const openCount = state.stamps.filter(s => draftIds.includes(s.video_id) && s.status === 'open').length;
+    const isApproved = drafts.some(d => d.status === 'approved');
+
+    // Jika sudah approved atau seluruh stamp beres (dan pernah ada revisi/draft)
+    if (isApproved || (drafts.length > 0 && openCount === 0 && state.stamps.some(s => draftIds.includes(s.video_id)))) {
+      completedTitles.push({ title, drafts, openCount, isApproved });
+    } else {
+      activeTitles.push({ title, drafts, openCount, isApproved });
+    }
+  });
+
+  const renderVideoItemHtml = (itemData, isCompleted = false) => {
+    const { title, drafts, openCount, isApproved } = itemData;
+    const latestDraft = drafts[drafts.length - 1];
     const approvedDraft = drafts.find(d => d.status === 'approved');
 
     const uploaderIds = [...new Set(drafts.map(d => d.uploaded_by).filter(Boolean))];
@@ -992,12 +1023,14 @@ function renderWorkspaceVideos() {
     let statusBadgeHtml = '';
     if (approvedDraft) {
       statusBadgeHtml = `<span class="badge badge-approved" style="font-size:10px;">Approved on D${approvedDraft.draft_number}</span>`;
+    } else if (openCount === 0 && drafts.length > 0) {
+      statusBadgeHtml = `<span class="badge badge-approved" style="font-size:10px;">Completed</span>`;
     } else {
       statusBadgeHtml = `<span class="badge badge-review" style="font-size:10px;">In Review</span>`;
     }
 
     const item = document.createElement('div');
-    item.className = 'video-item' + (title === state.selectedVideoTitle ? ' active' : '');
+    item.className = 'video-item' + (title === state.selectedVideoTitle ? ' active' : '') + (isCompleted ? ' is-completed-item' : '');
     item.innerHTML = `
       <div class="video-item-title">${escapeHtml(title)}</div>
       <div class="video-item-meta">
@@ -1012,12 +1045,40 @@ function renderWorkspaceVideos() {
       </div>
     `;
     item.onclick = () => selectVideoGroup(title);
-    nav.appendChild(item);
-  });
+    return item;
+  };
 
+  // 1. Render Active / In-progress videos
+  activeTitles.forEach(data => nav.appendChild(renderVideoItemHtml(data, false)));
+
+  // 2. Render Dropdown Completed Videos jika ada
+  if (completedTitles.length > 0) {
+    const toggleHeader = document.createElement('div');
+    toggleHeader.className = 'completed-section-toggle';
+    toggleHeader.innerHTML = `
+      <span>Completed Videos (${completedTitles.length})</span>
+      <span class="completed-caret">${state.completedVideosOpen ? '▲' : '▼'}</span>
+    `;
+
+    const completedWrap = document.createElement('div');
+    completedWrap.className = 'completed-video-list' + (state.completedVideosOpen ? ' open' : '');
+
+    completedTitles.forEach(data => completedWrap.appendChild(renderVideoItemHtml(data, true)));
+
+    toggleHeader.onclick = () => {
+      state.completedVideosOpen = !state.completedVideosOpen;
+      completedWrap.classList.toggle('open', state.completedVideosOpen);
+      toggleHeader.querySelector('.completed-caret').textContent = state.completedVideosOpen ? '▲' : '▼';
+    };
+
+    nav.appendChild(toggleHeader);
+    nav.appendChild(completedWrap);
+  }
+
+  // Pilih video aktif
   if (titles.length > 0) {
     if (!state.selectedVideoTitle || !titles.includes(state.selectedVideoTitle)) {
-      selectVideoGroup(titles[0]);
+      selectVideoGroup(activeTitles.length > 0 ? activeTitles[0].title : completedTitles[0].title);
     } else {
       selectVideoGroup(state.selectedVideoTitle);
     }
@@ -1154,6 +1215,40 @@ function renderApproveButton(v) {
   }
 }
 
+/* NOTIFY REVIEWER BUTTON (CAN BE PRESSED MULTIPLE TIMES) */
+$('notifyReviewerBtn').onclick = async () => {
+  const activeVideo = state.videos.find(x => x.id === state.currentVideoId);
+  if (!activeVideo) return;
+
+  const btn = $('notifyReviewerBtn');
+  btn.disabled = true;
+  btn.textContent = 'Sending...';
+
+  // Cari siapa reviewer dan master di project ini
+  const reviewers = state.members.filter(m => m.project_id === state.currentProjectId && m.role === 'reviewer');
+  const masters = state.profiles.filter(p => p.is_master);
+  
+  const recipientIds = [...new Set([...reviewers.map(r => r.user_id), ...masters.map(m => m.id)])]
+    .filter(id => id !== state.me.id);
+
+  if (recipientIds.length > 0) {
+    const notificationsToInsert = recipientIds.map(uid => ({
+      user_id: uid,
+      type: 'new_revision',
+      project_id: state.currentProjectId,
+      video_id: activeVideo.id,
+      actor_id: state.me.id,
+      body: `${state.me.display_name} uploaded / updated ${activeVideo.title} (Draft ${activeVideo.draft_number}) and requested review.`
+    }));
+
+    await sb.from('notifications').insert(notificationsToInsert);
+  }
+
+  btn.disabled = false;
+  btn.textContent = '✓ Sent!';
+  setTimeout(() => { btn.textContent = '🔔 Notify Reviewer'; }, 2000);
+};
+
 function destroyPlayer() {
   if (pollTimer) clearInterval(pollTimer);
   if (ytPlayer && ytPlayer.destroy) {
@@ -1205,6 +1300,7 @@ $('scrubber').onclick = (e) => {
   ytPlayer.seekTo(pct * (lastKnownDuration || ytPlayer.getDuration()), true);
 };
 
+/* EDIT VIDEO LINK & DELETE DRAFT / VIDEO */
 $('editVideoBtn').onclick = () => {
   const v = state.videos.find(x => x.id === state.currentVideoId);
   if (!v) return;
@@ -1213,16 +1309,45 @@ $('editVideoBtn').onclick = () => {
   $('vmTitle').value = v.title;
   $('vmUrl').value = `https://youtu.be/${v.youtube_id}`;
   $('vmDraft').value = v.draft_number;
+
+  // Pasang opsi delete di modal edit
+  $('vmDeleteArea').innerHTML = `
+    <button class="btn btn-danger btn-sm" id="btnDeleteDraft">Delete Draft ${v.draft_number}</button>
+    <button class="btn btn-ghost btn-sm" id="btnDeleteVideo" style="color:var(--danger)">Delete Entire Video</button>
+  `;
+
+  // 1. Delete spesifik draft ini
+  $('btnDeleteDraft').onclick = async () => {
+    if (!confirm(`Delete Draft ${v.draft_number} of "${v.title}"?`)) return;
+    await sb.from('videos').delete().eq('id', v.id);
+    closeModal('videoModal');
+    await loadAll();
+    renderWorkspaceVideos();
+  };
+
+  // 2. Delete entire video (semua draft dengan judul ini)
+  $('btnDeleteVideo').onclick = async () => {
+    if (!confirm(`Permanently delete all drafts for "${v.title}"?`)) return;
+    await sb.from('videos').delete().eq('project_id', state.currentProjectId).eq('title', v.title);
+    state.selectedVideoTitle = null;
+    closeModal('videoModal');
+    await loadAll();
+    renderWorkspaceVideos();
+  };
+
   openModal('videoModal');
 };
+
 $('addNewVideoGroupBtn').onclick = () => {
   state.editingVideoId = null;
   $('vmModalTitle').textContent = 'Add New Video Title';
   $('vmTitle').value = '';
   $('vmUrl').value = '';
   $('vmDraft').value = 1;
+  $('vmDeleteArea').innerHTML = '';
   openModal('videoModal');
 };
+
 $('addNewDraftBtn').onclick = () => {
   const activeVideo = state.videos.find(x => x.id === state.currentVideoId);
   if (!activeVideo) return;
@@ -1230,10 +1355,12 @@ $('addNewDraftBtn').onclick = () => {
   $('vmModalTitle').textContent = `Add Next Draft for "${activeVideo.title}"`;
   $('vmTitle').value = activeVideo.title;
   $('vmUrl').value = '';
+  $('vmDeleteArea').innerHTML = '';
   const siblingDrafts = state.videos.filter(v => v.project_id === state.currentProjectId && v.title === activeVideo.title);
   $('vmDraft').value = Math.max(...siblingDrafts.map(v => v.draft_number)) + 1;
   openModal('videoModal');
 };
+
 $('vmSave').onclick = async () => {
   const title = $('vmTitle').value.trim();
   const url = $('vmUrl').value.trim();
@@ -1392,7 +1519,7 @@ async function saveStamp() {
   renderWorkspaceVideos();
 }
 
-/* SCRUBBER MARKERS (DRAFT AKTIF = WARNA ASLI, DRAFT SEBELUMNYA = ABU-ABU, DONE = HILANG) */
+/* SCRUBBER MARKERS (DRAFT CURRENT = WARNA ASLI, PREVIOUS = ABU-ABU, DONE = HILANG) */
 function renderStampMarkers() {
   document.querySelectorAll('.stamp-marker').forEach(el => el.remove());
   if (!playerReady || !ytPlayer.getDuration) return;
@@ -1411,7 +1538,6 @@ function renderStampMarkers() {
     const draftStamps = state.stamps.filter(s => s.video_id === d.id);
 
     draftStamps.forEach(s => {
-      // Jika dari draft sebelumnya dan sudah done, sembunyikan dari scrubber
       if (!isCurrent && s.status === 'done') return;
 
       const m = document.createElement('div');
