@@ -156,7 +156,6 @@
   .video-item-meta { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; font-size: 11px; font-weight: 400; color: var(--text-muted); }
   .video-item-editors { font-size: 11px; color: var(--text-muted); font-weight: 500; margin-top: 3px; display: flex; align-items: center; gap: 4px; }
 
-  /* Completed Videos Section */
   .completed-section-toggle { padding: 10px 12px; font-size: 12px; font-weight: 600; color: var(--text-muted); cursor: pointer; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border); background: #FAFBFD; margin-top: 6px; }
   .completed-section-toggle:hover { color: var(--text-main); }
   .completed-video-list { display: none; padding-top: 4px; }
@@ -472,7 +471,6 @@
   </div>
 </div>
 
-<!-- Modal: Edit Video Link / Delete Video & Draft -->
 <div class="modal-backdrop" id="videoModal">
   <div class="modal">
     <h3 id="vmModalTitle">Video Setup</h3>
@@ -575,6 +573,30 @@ function myRoleIn(projectId) {
 function canReview(pid) { const r = myRoleIn(pid); return r === 'reviewer' || r === 'master'; }
 function isEditorIn(pid) { return myRoleIn(pid) === 'editor'; }
 
+/* DESKTOP BROWSER NOTIFICATIONS */
+async function requestNotificationPermission() {
+  if (!('Notification' in window)) return;
+  if (Notification.permission === 'default') {
+    await Notification.requestPermission();
+  }
+}
+
+function triggerDesktopNotification(title, body) {
+  if (!('Notification' in window) || Notification.permission !== 'granted') return;
+  try {
+    const notif = new Notification(title, {
+      body: body,
+      icon: 'https://cdn-icons-png.flaticon.com/512/3602/3602145.png'
+    });
+    notif.onclick = () => {
+      window.focus();
+      notif.close();
+    };
+  } catch (e) {
+    console.error('Desktop notification error:', e);
+  }
+}
+
 async function loadAll() {
   const [pf, pr, pm, vd, st, rp, nt] = await Promise.all([
     sb.from('profiles').select('*'),
@@ -623,7 +645,13 @@ function subscribeRealtime() {
     .on('postgres_changes', { event: '*', schema: 'public', table: 'videos' }, scheduleRefresh)
     .on('postgres_changes', { event: '*', schema: 'public', table: 'projects' }, scheduleRefresh)
     .on('postgres_changes', { event: '*', schema: 'public', table: 'project_members' }, scheduleRefresh)
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'notifications' }, scheduleRefresh)
+    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications' }, payload => {
+      const n = payload.new;
+      if (state.me && n.user_id === state.me.id) {
+        triggerDesktopNotification('TDR Revision Hub', n.body);
+      }
+      scheduleRefresh();
+    })
     .subscribe();
 }
 
@@ -726,6 +754,8 @@ async function bootApp() {
     $('dashActions').innerHTML = `<button class="btn btn-primary" id="newProjectBtn">+ New Project</button>`;
     $('newProjectBtn').onclick = () => openModal('projectModal');
   }
+  
+  await requestNotificationPermission();
   subscribeRealtime();
   renderProjectGrid();
   renderTaskPanel();
@@ -985,7 +1015,6 @@ $('backBtn').onclick = () => {
   renderTaskPanel();
 };
 
-/* SIDEBAR: ACTIVE VIDEOS + DROPDOWN COMPLETED VIDEOS */
 function renderWorkspaceVideos() {
   const pVids = state.videos.filter(v => v.project_id === state.currentProjectId);
   const nav = $('videoNavList');
@@ -1001,7 +1030,6 @@ function renderWorkspaceVideos() {
     const openCount = state.stamps.filter(s => draftIds.includes(s.video_id) && s.status === 'open').length;
     const isApproved = drafts.some(d => d.status === 'approved');
 
-    // Jika sudah approved atau seluruh stamp beres (dan pernah ada revisi/draft)
     if (isApproved || (drafts.length > 0 && openCount === 0 && state.stamps.some(s => draftIds.includes(s.video_id)))) {
       completedTitles.push({ title, drafts, openCount, isApproved });
     } else {
@@ -1048,10 +1076,8 @@ function renderWorkspaceVideos() {
     return item;
   };
 
-  // 1. Render Active / In-progress videos
   activeTitles.forEach(data => nav.appendChild(renderVideoItemHtml(data, false)));
 
-  // 2. Render Dropdown Completed Videos jika ada
   if (completedTitles.length > 0) {
     const toggleHeader = document.createElement('div');
     toggleHeader.className = 'completed-section-toggle';
@@ -1075,7 +1101,6 @@ function renderWorkspaceVideos() {
     nav.appendChild(completedWrap);
   }
 
-  // Pilih video aktif
   if (titles.length > 0) {
     if (!state.selectedVideoTitle || !titles.includes(state.selectedVideoTitle)) {
       selectVideoGroup(activeTitles.length > 0 ? activeTitles[0].title : completedTitles[0].title);
@@ -1215,7 +1240,6 @@ function renderApproveButton(v) {
   }
 }
 
-/* NOTIFY REVIEWER BUTTON (CAN BE PRESSED MULTIPLE TIMES) */
 $('notifyReviewerBtn').onclick = async () => {
   const activeVideo = state.videos.find(x => x.id === state.currentVideoId);
   if (!activeVideo) return;
@@ -1224,7 +1248,6 @@ $('notifyReviewerBtn').onclick = async () => {
   btn.disabled = true;
   btn.textContent = 'Sending...';
 
-  // Cari siapa reviewer dan master di project ini
   const reviewers = state.members.filter(m => m.project_id === state.currentProjectId && m.role === 'reviewer');
   const masters = state.profiles.filter(p => p.is_master);
   
@@ -1300,7 +1323,6 @@ $('scrubber').onclick = (e) => {
   ytPlayer.seekTo(pct * (lastKnownDuration || ytPlayer.getDuration()), true);
 };
 
-/* EDIT VIDEO LINK & DELETE DRAFT / VIDEO */
 $('editVideoBtn').onclick = () => {
   const v = state.videos.find(x => x.id === state.currentVideoId);
   if (!v) return;
@@ -1310,13 +1332,11 @@ $('editVideoBtn').onclick = () => {
   $('vmUrl').value = `https://youtu.be/${v.youtube_id}`;
   $('vmDraft').value = v.draft_number;
 
-  // Pasang opsi delete di modal edit
   $('vmDeleteArea').innerHTML = `
     <button class="btn btn-danger btn-sm" id="btnDeleteDraft">Delete Draft ${v.draft_number}</button>
     <button class="btn btn-ghost btn-sm" id="btnDeleteVideo" style="color:var(--danger)">Delete Entire Video</button>
   `;
 
-  // 1. Delete spesifik draft ini
   $('btnDeleteDraft').onclick = async () => {
     if (!confirm(`Delete Draft ${v.draft_number} of "${v.title}"?`)) return;
     await sb.from('videos').delete().eq('id', v.id);
@@ -1325,7 +1345,6 @@ $('editVideoBtn').onclick = () => {
     renderWorkspaceVideos();
   };
 
-  // 2. Delete entire video (semua draft dengan judul ini)
   $('btnDeleteVideo').onclick = async () => {
     if (!confirm(`Permanently delete all drafts for "${v.title}"?`)) return;
     await sb.from('videos').delete().eq('project_id', state.currentProjectId).eq('title', v.title);
@@ -1519,7 +1538,7 @@ async function saveStamp() {
   renderWorkspaceVideos();
 }
 
-/* SCRUBBER MARKERS (DRAFT CURRENT = WARNA ASLI, PREVIOUS = ABU-ABU, DONE = HILANG) */
+/* SCRUBBER MARKERS */
 function renderStampMarkers() {
   document.querySelectorAll('.stamp-marker').forEach(el => el.remove());
   if (!playerReady || !ytPlayer.getDuration) return;
