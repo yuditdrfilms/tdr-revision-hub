@@ -517,12 +517,11 @@
   </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/pocketbase@0.25.2/dist/pocketbase.umd.js"></script>
 <script src="https://www.youtube.com/iframe_api"></script>
 <script>
-const SUPABASE_URL = 'https://api-revision.tdrfilms.com';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsImlzcyI6InN1cGFiYXNlIiwiaWF0IjoxNjAwMDAwMDAwLCJleHAiOjI1MjQ2MDgwMDB9.BGu2ii_zvaPjFvrNFLyj2FKWLVwcZN6SrIHHgV3D35I';
-const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const PB_URL = 'https://api-revision.tdrfilms.com';
+const pb = new PocketBase(PB_URL);
 
 const state = {
   me: null, profiles: [], projects: [], members: [], videos: [],
@@ -607,23 +606,35 @@ function triggerDesktopNotification(title, body) {
 }
 
 async function loadAll() {
-  const [pf, pr, pm, vd, st, rp, nt] = await Promise.all([
-    sb.from('profiles').select('*'),
-    sb.from('projects').select('*').order('created_at', { ascending: false }),
-    sb.from('project_members').select('*'),
-    sb.from('videos').select('*').order('draft_number', { ascending: true }),
-    sb.from('stamps').select('*').order('timestamp_seconds', { ascending: true }),
-    sb.from('stamp_replies').select('*').order('created_at', { ascending: true }),
-    sb.from('notifications').select('*').order('created_at', { ascending: false }).limit(50)
-  ]);
-  state.profiles = pf.data || [];
-  state.projects = pr.data || [];
-  state.members = pm.data || [];
-  state.videos = vd.data || [];
-  state.stamps = st.data || [];
-  state.replies = rp.data || [];
-  state.notifs = nt.data || [];
-  return true;
+  try {
+    const [pf, pr, pm, vd, st, rp, nt] = await Promise.all([
+      pb.collection('users').getFullList(),
+      pb.collection('projects').getFullList({ sort: '-created' }),
+      pb.collection('project_members').getFullList(),
+      pb.collection('videos').getFullList({ sort: 'draft_number' }),
+      pb.collection('stamps').getFullList({ sort: 'timestamp_seconds' }),
+      pb.collection('stamp_replies').getFullList({ sort: 'created' }),
+      pb.collection('notifications').getFullList({ sort: '-created', perPage: 50 })
+    ]);
+    state.profiles = pf || [];
+    state.projects = pr || [];
+    state.members = pm || [];
+    state.videos = vd || [];
+    state.stamps = st || [];
+    state.replies = rp || [];
+    state.notifs = nt || [];
+    return true;
+  } catch (err) {
+    console.error('Failed to load data:', err);
+    state.profiles = state.profiles || [];
+    state.projects = state.projects || [];
+    state.members = state.members || [];
+    state.videos = state.videos || [];
+    state.stamps = state.stamps || [];
+    state.replies = state.replies || [];
+    state.notifs = state.notifs || [];
+    return false;
+  }
 }
 
 let refreshTimer = null;
@@ -647,21 +658,21 @@ function scheduleRefresh() {
   }, 250);
 }
 
-function subscribeRealtime() {
-  sb.channel('revision-hub')
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'stamps' }, scheduleRefresh)
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'stamp_replies' }, scheduleRefresh)
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'videos' }, scheduleRefresh)
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'projects' }, scheduleRefresh)
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'project_members' }, scheduleRefresh)
-    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications' }, payload => {
-      const n = payload.new;
-      if (state.me && n && n.user_id === state.me.id) {
+async function subscribeRealtime() {
+  await Promise.all([
+    pb.collection('stamps').subscribe('*', scheduleRefresh),
+    pb.collection('stamp_replies').subscribe('*', scheduleRefresh),
+    pb.collection('videos').subscribe('*', scheduleRefresh),
+    pb.collection('projects').subscribe('*', scheduleRefresh),
+    pb.collection('project_members').subscribe('*', scheduleRefresh),
+    pb.collection('notifications').subscribe('*', (e) => {
+      const n = e.record;
+      if (e.action === 'create' && state.me && n && n.user_id === state.me.id) {
         triggerDesktopNotification('TDR Revision Hub', n.body);
       }
       scheduleRefresh();
     })
-    .subscribe();
+  ]);
 }
 
 function unreadCount() { return state.notifs.filter(n => !n.read_at).length; }
@@ -688,7 +699,7 @@ function renderNotifPanel(prefix) {
         <div class="notif-icon" style="background:#0D6EFD"></div>
         <div>
           <div class="notif-body">${renderMentions(n.body)}</div>
-          <div class="notif-meta">${timeAgo(n.created_at)}</div>
+          <div class="notif-meta">${timeAgo(n.created)}</div>
         </div>
       </div>`;
     });
@@ -701,7 +712,7 @@ function renderNotifPanel(prefix) {
       e.stopPropagation();
       const ids = state.notifs.filter(n => !n.read_at).map(n => n.id);
       if (!ids.length) return;
-      await sb.from('notifications').update({ read_at: new Date().toISOString() }).in('id', ids);
+      await Promise.all(ids.map(id => pb.collection('notifications').update(id, { read_at: new Date().toISOString() })));
       await loadAll(); renderBells(); renderNotifPanel(prefix);
     };
   }
@@ -711,7 +722,7 @@ function renderNotifPanel(prefix) {
       const n = state.notifs.find(x => x.id === item.dataset.nid);
       panel.classList.remove('open');
       if (!n.read_at) {
-        await sb.from('notifications').update({ read_at: new Date().toISOString() }).eq('id', n.id);
+        await pb.collection('notifications').update(n.id, { read_at: new Date().toISOString() });
         await loadAll(); renderBells();
       }
       if (n.project_id) openWorkspace(n.project_id);
@@ -737,19 +748,24 @@ $('loginBtn').onclick = async () => {
   const err = $('loginError');
   err.style.display = 'none';
 
-  const { error } = await sb.auth.signInWithPassword({ email, password });
-  if (error) { err.style.display = 'block'; return; }
+  try {
+    await pb.collection('users').authWithPassword(email, password);
+  } catch (error) {
+    err.style.display = 'block';
+    return;
+  }
   await requestNotificationPermission();
   bootApp();
 };
 
 $('logoutBtn').onclick = async () => {
-  await sb.auth.signOut();
+  pb.authStore.clear();
   location.reload();
 };
 
 async function bootApp() {
-  const { data: { user } } = await sb.auth.getUser();
+  if (!pb.authStore.isValid) return;
+  const user = pb.authStore.record;
   if (!user) return;
   await loadAll();
   state.me = state.profiles.find(p => p.id === user.id);
@@ -765,7 +781,7 @@ async function bootApp() {
     $('dashActions').innerHTML = `<button class="btn btn-primary" id="newProjectBtn">+ New Project</button>`;
     $('newProjectBtn').onclick = () => openModal('projectModal');
   }
-  
+
   subscribeRealtime();
   renderProjectGrid();
   renderTaskPanel();
@@ -780,7 +796,7 @@ function renderProjectGrid() {
     const card = document.createElement('div');
     card.className = 'gallery-card';
     const deadlineText = p.delivery_deadline ? new Date(p.delivery_deadline).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'No deadline';
-    
+
     card.innerHTML = `
       <div class="card-banner" style="background: ${p.cover_color || '#1E293B'}">
         ${p.logo_url ? `<img src="${p.logo_url}" alt="Logo">` : `<div class="card-banner-text">${p.name.substring(0,2).toUpperCase()}</div>`}
@@ -850,7 +866,7 @@ function myOpenTasks() {
 
   return out.sort((a, b) => {
     if (a.project.name !== b.project.name) return a.project.name.localeCompare(b.project.name);
-    return (b.mentionsMe - a.mentionsMe) || (new Date(b.stamp.created_at) - new Date(a.stamp.created_at));
+    return (b.mentionsMe - a.mentionsMe) || (new Date(b.stamp.created) - new Date(a.stamp.created));
   });
 }
 
@@ -911,13 +927,17 @@ function openEditProjectModal(project) {
   openModal('projectEditModal');
 }
 $('peSave').onclick = async () => {
-  await sb.from('projects').update({
-    name: $('peName').value.trim(),
-    client_name: $('peClient').value.trim() || null,
-    delivery_deadline: $('peDeadline').value || null,
-    cover_color: $('peCoverColor').value,
-    logo_url: $('peLogo').value.trim() || null
-  }).eq('id', state.editingProjectId);
+  try {
+    await pb.collection('projects').update(state.editingProjectId, {
+      name: $('peName').value.trim(),
+      client_name: $('peClient').value.trim() || null,
+      delivery_deadline: $('peDeadline').value || null,
+      cover_color: $('peCoverColor').value,
+      logo_url: $('peLogo').value.trim() || null
+    });
+  } catch (err) {
+    return alert('Failed to update project: ' + err.message);
+  }
   closeModal('projectEditModal');
   await loadAll(); renderProjectGrid(); renderTaskPanel();
 };
@@ -926,8 +946,11 @@ $('peDeleteBtn').onclick = async () => {
   if (!p) return;
   if (!confirm(`Are you sure you want to permanently delete "${p.name}"? This action cannot be undone.`)) return;
 
-  const { error } = await sb.from('projects').delete().eq('id', p.id);
-  if (error) return alert('Failed to delete project: ' + error.message);
+  try {
+    await pb.collection('projects').delete(p.id);
+  } catch (err) {
+    return alert('Failed to delete project: ' + err.message);
+  }
 
   closeModal('projectEditModal');
   await loadAll();
@@ -938,14 +961,18 @@ $('peDeleteBtn').onclick = async () => {
 $('pmSave').onclick = async () => {
   const name = $('pmName').value.trim();
   if (!name) return;
-  const { data, error } = await sb.from('projects').insert({
-    name, client_name: $('pmClient').value.trim() || null,
-    delivery_deadline: $('pmDeadline').value || null,
-    cover_color: $('pmCoverColor').value,
-    logo_url: $('pmLogo').value.trim() || null,
-    created_by: state.me.id
-  }).select().single();
-  if (error) return alert('Failed to create project: ' + error.message);
+  let data;
+  try {
+    data = await pb.collection('projects').create({
+      name, client_name: $('pmClient').value.trim() || null,
+      delivery_deadline: $('pmDeadline').value || null,
+      cover_color: $('pmCoverColor').value,
+      logo_url: $('pmLogo').value.trim() || null,
+      created_by: state.me.id
+    });
+  } catch (err) {
+    return alert('Failed to create project: ' + err.message);
+  }
 
   closeModal('projectModal');
   await loadAll();
@@ -983,9 +1010,12 @@ function openTeamModal(projectId) {
 
     row.querySelector('select').onchange = async (e) => {
       const role = e.target.value;
-      await sb.from('project_members').delete().eq('project_id', projectId).eq('user_id', u.id);
+      const existing = state.members.find(m => m.project_id === projectId && m.user_id === u.id);
+      if (existing) {
+        await pb.collection('project_members').delete(existing.id);
+      }
       if (role) {
-        await sb.from('project_members').insert({
+        await pb.collection('project_members').create({
           project_id: projectId,
           user_id: u.id,
           role: role,
@@ -1133,10 +1163,10 @@ function selectVideoGroup(title) {
     const t = el.querySelector('.video-item-title');
     el.classList.toggle('active', t && t.textContent === title);
   });
-  
+
   const drafts = state.videos.filter(v => v.project_id === state.currentProjectId && v.title === title)
                              .sort((a, b) => a.draft_number - b.draft_number);
-  
+
   const select = $('draftSelect');
   select.innerHTML = '';
   drafts.forEach(d => {
@@ -1228,7 +1258,7 @@ function renderApproveButton(v) {
     const cBtn = $('cancelApproveBtn');
     if (cBtn) {
       cBtn.onclick = async () => {
-        await sb.from('videos').update({ status: 'in_review' }).eq('id', v.id);
+        await pb.collection('videos').update(v.id, { status: 'in_review', approved_by: null });
         await loadAll();
         const updated = state.videos.find(x => x.id === v.id);
         renderApproveButton(updated);
@@ -1244,7 +1274,7 @@ function renderApproveButton(v) {
         const openRev = state.stamps.filter(s => draftIds.includes(s.video_id) && s.status === 'open').length;
         if (openRev > 0 && !confirm(`There are still ${openRev} open revisions. Approve anyway?`)) return;
 
-        await sb.from('videos').update({ status: 'approved' }).eq('id', v.id);
+        await pb.collection('videos').update(v.id, { status: 'approved', approved_by: state.me.id });
         await loadAll();
         const updated = state.videos.find(x => x.id === v.id);
         renderApproveButton(updated);
@@ -1266,7 +1296,7 @@ $('notifyReviewerBtn').onclick = async () => {
 
   const reviewers = state.members.filter(m => m.project_id === state.currentProjectId && m.role === 'reviewer');
   const masters = state.profiles.filter(p => p.is_master);
-  
+
   const recipientIds = [...new Set([...reviewers.map(r => r.user_id), ...masters.map(m => m.id)])]
     .filter(id => id !== state.me.id);
 
@@ -1280,7 +1310,7 @@ $('notifyReviewerBtn').onclick = async () => {
       body: `${state.me.display_name} uploaded / updated ${activeVideo.title} (Draft ${activeVideo.draft_number}) and requested review.`
     }));
 
-    await sb.from('notifications').insert(notificationsToInsert);
+    await Promise.all(notificationsToInsert.map(row => pb.collection('notifications').create(row)));
   }
 
   btn.disabled = false;
@@ -1355,7 +1385,7 @@ $('editVideoBtn').onclick = () => {
 
   $('btnDeleteDraft').onclick = async () => {
     if (!confirm(`Delete Draft ${v.draft_number} of "${v.title}"?`)) return;
-    await sb.from('videos').delete().eq('id', v.id);
+    await pb.collection('videos').delete(v.id);
     closeModal('videoModal');
     await loadAll();
     renderWorkspaceVideos();
@@ -1363,7 +1393,8 @@ $('editVideoBtn').onclick = () => {
 
   $('btnDeleteVideo').onclick = async () => {
     if (!confirm(`Permanently delete all drafts for "${v.title}"?`)) return;
-    await sb.from('videos').delete().eq('project_id', state.currentProjectId).eq('title', v.title);
+    const matching = state.videos.filter(x => x.project_id === state.currentProjectId && x.title === v.title);
+    await Promise.all(matching.map(x => pb.collection('videos').delete(x.id)));
     state.selectedVideoTitle = null;
     closeModal('videoModal');
     await loadAll();
@@ -1404,9 +1435,9 @@ $('vmSave').onclick = async () => {
   if (!title || !ytId) return alert('Invalid Title or YouTube Link/Shorts URL');
 
   if (state.editingVideoId) {
-    await sb.from('videos').update({ title, youtube_id: ytId, draft_number: draft }).eq('id', state.editingVideoId);
+    await pb.collection('videos').update(state.editingVideoId, { title, youtube_id: ytId, draft_number: draft });
   } else {
-    await sb.from('videos').insert({
+    await pb.collection('videos').create({
       project_id: state.currentProjectId,
       title, youtube_id: ytId, draft_number: draft, uploaded_by: state.me.id
     });
@@ -1454,7 +1485,7 @@ function setupMention(inputEl, popEl) {
     const q = m[1].toLowerCase();
     mentionCandidates = state.profiles.filter(x => x.id !== state.me.id && (x.display_name||'').toLowerCase().startsWith(q));
     if (!mentionCandidates.length) { popEl.classList.remove('open'); return; }
-    
+
     mentionIndex = 0;
     renderMentionPopup(inputEl, popEl, before, pos);
   });
@@ -1531,7 +1562,7 @@ async function saveMentions(text, { stampId, replyId }) {
   const ids = [...new Set(names.map(u => u.id))].filter(id => id !== state.me.id);
   if (!ids.length) return;
   const rows = ids.map(uid => ({ stamp_id: stampId || null, reply_id: replyId || null, mentioned_user: uid, created_by: state.me.id }));
-  await sb.from('mentions').insert(rows);
+  await Promise.all(rows.map(row => pb.collection('mentions').create(row)));
 }
 
 $('saveNoteBtn').onclick = saveStamp;
@@ -1539,21 +1570,26 @@ $('saveNoteBtn').onclick = saveStamp;
 async function saveStamp() {
   const note = $('noteInput').value.trim();
   if (!note || state.pendingStampTime === null) return;
-  
+
   const savedTime = state.pendingStampTime;
   const btn = $('saveNoteBtn');
   btn.disabled = true;
 
-  const { data, error } = await sb.from('stamps').insert({
-    video_id: state.currentVideoId,
-    timestamp_seconds: Math.round(savedTime * 10) / 10,
-    color: state.selectedColor,
-    note,
-    created_by: state.me.id
-  }).select().single();
-  
+  let data;
+  try {
+    data = await pb.collection('stamps').create({
+      video_id: state.currentVideoId,
+      timestamp_seconds: Math.round(savedTime * 10) / 10,
+      color: state.selectedColor,
+      note,
+      created_by: state.me.id
+    });
+  } catch (err) {
+    btn.disabled = false;
+    return alert('Failed to save stamp: ' + err.message);
+  }
+
   btn.disabled = false;
-  if (error) return alert('Failed to save stamp: ' + error.message);
 
   await saveMentions(note, { stampId: data.id });
   state.pendingStampTime = null;
@@ -1570,7 +1606,7 @@ async function saveStamp() {
 function renderStampMarkers() {
   document.querySelectorAll('.stamp-marker').forEach(el => el.remove());
   if (!playerReady || !ytPlayer.getDuration) return;
-  
+
   const dur = lastKnownDuration || ytPlayer.getDuration();
   if (!dur || dur <= 0) return;
 
@@ -1591,7 +1627,7 @@ function renderStampMarkers() {
       m.className = 'stamp-marker';
       const pct = Math.min(100, Math.max(0, (s.timestamp_seconds / dur) * 100));
       m.style.left = pct + '%';
-      
+
       m.style.background = isCurrent ? s.color : '#9CA3AF';
       m.style.border = isCurrent ? '1.5px solid #fff' : '1.5px solid #6B7280';
       m.title = `Draft ${d.draft_number} - ${formatTime(s.timestamp_seconds)}: ${s.note}`;
@@ -1608,7 +1644,7 @@ function renderStampMarkers() {
 function renderStamps() {
   const list = $('stampsList');
   list.innerHTML = '';
-  
+
   const activeVideo = state.videos.find(v => v.id === state.currentVideoId && v.project_id === state.currentProjectId);
   if (!activeVideo) {
     $('stampsSummary').textContent = '0 Notes';
@@ -1642,7 +1678,7 @@ function renderStamps() {
   const renderCard = (s) => {
     const author = userById(s.created_by);
     const canToggle = isEditorIn(state.currentProjectId) || s.created_by === state.me.id || state.me.is_master;
-    const replies = state.replies.filter(r => r.stamp_id === s.id).sort((a,b) => new Date(a.created_at) - new Date(b.created_at));
+    const replies = state.replies.filter(r => r.stamp_id === s.id).sort((a,b) => new Date(a.created) - new Date(b.created));
 
     const card = document.createElement('div');
     card.className = `stamp-card ${s.status === 'done' ? 'is-done-card' : ''} ${s.isPrevious ? 'archived-draft' : ''}`;
@@ -1661,7 +1697,7 @@ function renderStamps() {
       </div>
       ${replies.length ? `<div class="replies">${replies.map(r => {
         const ru = userById(r.created_by);
-        return `<div class="reply"><b>${escapeHtml(ru ? ru.display_name : 'User')}:</b> ${renderMentions(r.body)} <span class="reply-time" style="color:var(--text-faint);font-size:10px;">${timeAgo(r.created_at)}</span></div>`;
+        return `<div class="reply"><b>${escapeHtml(ru ? ru.display_name : 'User')}:</b> ${renderMentions(r.body)} <span class="reply-time" style="color:var(--text-faint);font-size:10px;">${timeAgo(r.created)}</span></div>`;
       }).join('')}</div>` : ''}
       <div class="reply-form">
         <div class="mention-pop"></div>
@@ -1683,7 +1719,7 @@ function renderStamps() {
       e.stopPropagation();
       if (!canToggle) return alert('Only assigned editors, reviewers, or creator can toggle status.');
       const next = s.status === 'open' ? 'done' : 'open';
-      await sb.from('stamps').update({ status: next }).eq('id', s.id);
+      await pb.collection('stamps').update(s.id, { status: next });
       s.status = next;
       renderStamps();
       renderStampMarkers();
@@ -1703,7 +1739,7 @@ function renderStamps() {
     const sendReply = async (e) => {
       if (e) e.stopPropagation();
       const body = rInput.value.trim(); if (!body) return;
-      const { data } = await sb.from('stamp_replies').insert({ stamp_id: s.id, body, created_by: state.me.id }).select().single();
+      const data = await pb.collection('stamp_replies').create({ stamp_id: s.id, body, created_by: state.me.id });
       await saveMentions(body, { replyId: data.id });
       state.replies.push(data);
       renderStamps();
