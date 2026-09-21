@@ -107,9 +107,12 @@
   .gallery-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 18px; }
   .gallery-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); overflow: hidden; cursor: pointer; transition: transform .15s, box-shadow .15s; display: flex; flex-direction: column; box-shadow: var(--shadow-sm); }
   .gallery-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-card); border-color: var(--border-dark); }
-  .card-banner { height: 120px; display: flex; align-items: center; justify-content: center; position: relative; padding: 16px; }
-  .card-banner img { max-height: 80%; max-width: 80%; object-fit: contain; }
-  .card-banner-text { font-size: 22px; font-weight: 700; color: #fff; text-shadow: 0 1px 3px rgba(0,0,0,0.25); }
+  .card-banner { height: 120px; display: flex; align-items: center; justify-content: center; position: relative; padding: 16px; overflow: hidden; }
+  .card-banner img.card-logo-img { max-height: 80%; max-width: 80%; object-fit: contain; }
+  .card-banner img.card-banner-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .card-banner-text { font-size: 22px; font-weight: 700; color: #fff; text-shadow: 0 1px 3px rgba(0,0,0,0.25); position: relative; z-index: 1; }
+  .client-logo-badge { width: 18px; height: 18px; border-radius: 50%; object-fit: cover; flex-shrink: 0; border: 1px solid var(--border); }
+  .file-preview-img { width: 48px; height: 48px; border-radius: 8px; object-fit: cover; border: 1px solid var(--border-dark); }
   
   .card-actions-overlay { position: absolute; top: 8px; right: 8px; display: flex; gap: 6px; opacity: 0; transition: opacity .15s; }
   .gallery-card:hover .card-actions-overlay { opacity: 1; }
@@ -404,20 +407,29 @@
       <input type="text" class="input" id="pmName" placeholder="e.g. Commercial Reel 2026">
     </div>
     <div class="modal-field">
-      <label class="field-label">Client Name</label>
-      <input type="text" class="input" id="pmClient" placeholder="e.g. OceanHero">
+      <label class="field-label">Client</label>
+      <select class="input" id="pmClientSelect"></select>
+    </div>
+    <div class="modal-field" id="pmNewClientNameWrap" style="display:none;">
+      <label class="field-label">New Client Name</label>
+      <input type="text" class="input" id="pmNewClientName" placeholder="e.g. OceanHero">
+    </div>
+    <div class="modal-field">
+      <label class="field-label">Client Logo <span style="font-weight:400;color:var(--text-faint);">(square, 1:1 — e.g. 512×512px)</span></label>
+      <input type="file" class="input" id="pmClientLogo" accept="image/*">
+      <div id="pmClientLogoPreview" style="margin-top:6px;"></div>
     </div>
     <div class="modal-field">
       <label class="field-label">Delivery Deadline</label>
       <input type="date" class="input" id="pmDeadline">
     </div>
     <div class="modal-field">
-      <label class="field-label">Card Cover Color</label>
+      <label class="field-label">Card Cover Color <span style="font-weight:400;color:var(--text-faint);">(fallback if no banner)</span></label>
       <input type="color" class="input" id="pmCoverColor" value="#1E293B" style="height: 38px; padding: 2px;">
     </div>
     <div class="modal-field">
-      <label class="field-label">Client Logo URL (Optional)</label>
-      <input type="text" class="input" id="pmLogo" placeholder="https://...">
+      <label class="field-label">Project Banner <span style="font-weight:400;color:var(--text-faint);">(wide, 16:9 — e.g. 1280×720px)</span></label>
+      <input type="file" class="input" id="pmBanner" accept="image/*">
     </div>
     <div class="modal-actions">
       <button class="btn btn-ghost" data-close="projectModal">Cancel</button>
@@ -435,20 +447,30 @@
       <input type="text" class="input" id="peName">
     </div>
     <div class="modal-field">
-      <label class="field-label">Client Name</label>
-      <input type="text" class="input" id="peClient">
+      <label class="field-label">Client</label>
+      <select class="input" id="peClientSelect"></select>
+    </div>
+    <div class="modal-field" id="peNewClientNameWrap" style="display:none;">
+      <label class="field-label">New Client Name</label>
+      <input type="text" class="input" id="peNewClientName" placeholder="e.g. OceanHero">
+    </div>
+    <div class="modal-field">
+      <label class="field-label">Client Logo <span style="font-weight:400;color:var(--text-faint);">(square, 1:1 — leave empty to keep current)</span></label>
+      <input type="file" class="input" id="peClientLogo" accept="image/*">
+      <div id="peClientLogoPreview" style="margin-top:6px;"></div>
     </div>
     <div class="modal-field">
       <label class="field-label">Delivery Deadline</label>
       <input type="date" class="input" id="peDeadline">
     </div>
     <div class="modal-field">
-      <label class="field-label">Card Cover Color</label>
+      <label class="field-label">Card Cover Color <span style="font-weight:400;color:var(--text-faint);">(fallback if no banner)</span></label>
       <input type="color" class="input" id="peCoverColor" style="height: 38px; padding: 2px;">
     </div>
     <div class="modal-field">
-      <label class="field-label">Client Logo URL</label>
-      <input type="text" class="input" id="peLogo">
+      <label class="field-label">Project Banner <span style="font-weight:400;color:var(--text-faint);">(wide, 16:9 — leave empty to keep current)</span></label>
+      <input type="file" class="input" id="peBanner" accept="image/*">
+      <div id="peBannerPreview" style="margin-top:6px;"></div>
     </div>
     <div class="modal-actions" style="justify-content: space-between;">
       <button class="btn btn-danger" id="peDeleteBtn">Delete Project</button>
@@ -525,7 +547,7 @@ const pb = new PocketBase(PB_URL);
 
 const state = {
   me: null, profiles: [], projects: [], members: [], videos: [],
-  stamps: [], replies: [], notifs: [],
+  stamps: [], replies: [], notifs: [], clients: [],
   currentProjectId: null, currentVideoId: null, selectedVideoTitle: null,
   selectedColor: '#E8A33D', pendingStampTime: null,
   editingProjectId: null, editingVideoId: null,
@@ -607,14 +629,15 @@ function triggerDesktopNotification(title, body) {
 
 async function loadAll() {
   try {
-    const [pf, pr, pm, vd, st, rp, nt] = await Promise.all([
+    const [pf, pr, pm, vd, st, rp, nt, cl] = await Promise.all([
       pb.collection('users').getFullList(),
       pb.collection('projects').getFullList({ sort: '-created' }),
       pb.collection('project_members').getFullList(),
       pb.collection('videos').getFullList({ sort: 'draft_number' }),
       pb.collection('stamps').getFullList({ sort: 'timestamp_seconds' }),
       pb.collection('stamp_replies').getFullList({ sort: 'created' }),
-      pb.collection('notifications').getFullList({ sort: '-created', perPage: 50 })
+      pb.collection('notifications').getFullList({ sort: '-created', perPage: 50 }),
+      pb.collection('clients').getFullList({ sort: 'name' })
     ]);
     state.profiles = pf || [];
     state.projects = pr || [];
@@ -623,6 +646,7 @@ async function loadAll() {
     state.stamps = st || [];
     state.replies = rp || [];
     state.notifs = nt || [];
+    state.clients = cl || [];
     return true;
   } catch (err) {
     console.error('Failed to load data:', err);
@@ -633,8 +657,19 @@ async function loadAll() {
     state.stamps = state.stamps || [];
     state.replies = state.replies || [];
     state.notifs = state.notifs || [];
+    state.clients = state.clients || [];
     return false;
   }
+}
+
+function clientById(id) { return state.clients.find(c => c.id === id); }
+function clientLogoUrl(client) {
+  if (!client || !client.logo) return null;
+  try { return pb.files.getUrl(client, client.logo, { thumb: '100x100' }); } catch (e) { return null; }
+}
+function projectBannerUrl(project) {
+  if (!project || !project.banner) return null;
+  try { return pb.files.getUrl(project, project.banner); } catch (e) { return null; }
 }
 
 let refreshTimer = null;
@@ -665,6 +700,7 @@ async function subscribeRealtime() {
     pb.collection('videos').subscribe('*', scheduleRefresh),
     pb.collection('projects').subscribe('*', scheduleRefresh),
     pb.collection('project_members').subscribe('*', scheduleRefresh),
+    pb.collection('clients').subscribe('*', scheduleRefresh),
     pb.collection('notifications').subscribe('*', (e) => {
       const n = e.record;
       if (e.action === 'create' && state.me && n && n.user_id === state.me.id) {
@@ -779,7 +815,17 @@ async function bootApp() {
 
   if (state.me.is_master) {
     $('dashActions').innerHTML = `<button class="btn btn-primary" id="newProjectBtn">+ New Project</button>`;
-    $('newProjectBtn').onclick = () => openModal('projectModal');
+    $('newProjectBtn').onclick = () => {
+      $('pmName').value = '';
+      $('pmDeadline').value = '';
+      $('pmCoverColor').value = '#1E293B';
+      $('pmClientLogo').value = '';
+      $('pmBanner').value = '';
+      $('pmNewClientName').value = '';
+      populateClientSelect($('pmClientSelect'), '');
+      wireClientSelect($('pmClientSelect'), $('pmNewClientNameWrap'), $('pmClientLogo'), $('pmClientLogoPreview'));
+      openModal('projectModal');
+    };
   }
 
   subscribeRealtime();
@@ -796,10 +842,23 @@ function renderProjectGrid() {
     const card = document.createElement('div');
     card.className = 'gallery-card';
     const deadlineText = p.delivery_deadline ? new Date(p.delivery_deadline).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'No deadline';
+    const client = clientById(p.client_id);
+    const bannerUrl = projectBannerUrl(p);
+    const logoUrl = clientLogoUrl(client);
+    const clientName = (client && client.name) || p.client_name || 'Internal';
+
+    let bannerInner;
+    if (bannerUrl) {
+      bannerInner = `<img class="card-banner-img" src="${bannerUrl}" alt="Banner">`;
+    } else if (logoUrl) {
+      bannerInner = `<img class="card-logo-img" src="${logoUrl}" alt="Logo">`;
+    } else {
+      bannerInner = `<div class="card-banner-text">${p.name.substring(0,2).toUpperCase()}</div>`;
+    }
 
     card.innerHTML = `
       <div class="card-banner" style="background: ${p.cover_color || '#1E293B'}">
-        ${p.logo_url ? `<img src="${p.logo_url}" alt="Logo">` : `<div class="card-banner-text">${p.name.substring(0,2).toUpperCase()}</div>`}
+        ${bannerInner}
         ${state.me.is_master ? `
           <div class="card-actions-overlay">
             <button class="card-action-mini team-btn" data-id="${p.id}">Team</button>
@@ -809,7 +868,10 @@ function renderProjectGrid() {
       </div>
       <div class="card-content">
         <div class="card-title">${escapeHtml(p.name)}</div>
-        <div class="card-client">${escapeHtml(p.client_name || 'Internal')}</div>
+        <div class="card-client" style="display:flex;align-items:center;gap:6px;">
+          ${logoUrl ? `<img class="client-logo-badge" src="${logoUrl}" alt="">` : ''}
+          <span>${escapeHtml(clientName)}</span>
+        </div>
         <div class="card-meta-row">
           <span class="card-deadline">⏱ ${deadlineText}</span>
           <span class="badge badge-draft">${state.videos.filter(v => v.project_id === p.id).length} Videos</span>
@@ -917,24 +979,95 @@ function renderTaskPanel() {
 }
 $('taskHead').onclick = () => $('taskPanel').classList.toggle('collapsed');
 
+function populateClientSelect(selectEl, selectedId) {
+  selectEl.innerHTML = '';
+  const optNone = document.createElement('option');
+  optNone.value = ''; optNone.textContent = 'No Client / Internal';
+  selectEl.appendChild(optNone);
+  state.clients.forEach(c => {
+    const opt = document.createElement('option');
+    opt.value = c.id; opt.textContent = c.name;
+    selectEl.appendChild(opt);
+  });
+  const optNew = document.createElement('option');
+  optNew.value = '__new__'; optNew.textContent = '+ Add New Client';
+  selectEl.appendChild(optNew);
+  selectEl.value = selectedId || '';
+}
+
+function wireClientSelect(selectEl, newNameWrapEl, logoInputEl, previewEl) {
+  const sync = () => {
+    const isNew = selectEl.value === '__new__';
+    newNameWrapEl.style.display = isNew ? '' : 'none';
+    if (previewEl) {
+      const c = clientById(selectEl.value);
+      const url = clientLogoUrl(c);
+      previewEl.innerHTML = url ? `<img class="file-preview-img" src="${url}" alt="Current logo">` : '';
+    }
+  };
+  selectEl.onchange = sync;
+  sync();
+}
+
+// Resolves the modal's client picker into a client_id, creating a new client
+// (with logo upload) or updating an existing client's logo if a new file was chosen.
+async function resolveClientId(selectEl, newNameInputEl, logoInputEl) {
+  const val = selectEl.value;
+  const file = logoInputEl.files[0];
+  if (val === '__new__') {
+    const name = newNameInputEl.value.trim();
+    if (!name) throw new Error('New client name is required.');
+    const fd = new FormData();
+    fd.append('name', name);
+    if (file) fd.append('logo', file);
+    const created = await pb.collection('clients').create(fd);
+    state.clients.push(created);
+    return created.id;
+  } else if (val) {
+    if (file) {
+      const fd = new FormData();
+      fd.append('logo', file);
+      const updated = await pb.collection('clients').update(val, fd);
+      const idx = state.clients.findIndex(c => c.id === val);
+      if (idx >= 0) state.clients[idx] = updated;
+    }
+    return val;
+  }
+  return null;
+}
+
 function openEditProjectModal(project) {
   state.editingProjectId = project.id;
   $('peName').value = project.name;
-  $('peClient').value = project.client_name || '';
   $('peDeadline').value = project.delivery_deadline || '';
   $('peCoverColor').value = project.cover_color || '#1E293B';
-  $('peLogo').value = project.logo_url || '';
+  $('peClientLogo').value = '';
+  $('peBanner').value = '';
+  $('peNewClientName').value = '';
+  populateClientSelect($('peClientSelect'), project.client_id || '');
+  wireClientSelect($('peClientSelect'), $('peNewClientNameWrap'), $('peClientLogo'), $('peClientLogoPreview'));
+  const bannerUrl = projectBannerUrl(project);
+  $('peBannerPreview').innerHTML = bannerUrl ? `<img class="file-preview-img" style="width:96px;height:54px;" src="${bannerUrl}" alt="Current banner">` : '';
   openModal('projectEditModal');
 }
 $('peSave').onclick = async () => {
+  const name = $('peName').value.trim();
+  if (!name) return;
+  let clientId;
   try {
-    await pb.collection('projects').update(state.editingProjectId, {
-      name: $('peName').value.trim(),
-      client_name: $('peClient').value.trim() || null,
-      delivery_deadline: $('peDeadline').value || null,
-      cover_color: $('peCoverColor').value,
-      logo_url: $('peLogo').value.trim() || null
-    });
+    clientId = await resolveClientId($('peClientSelect'), $('peNewClientName'), $('peClientLogo'));
+  } catch (err) {
+    return alert(err.message);
+  }
+  const fd = new FormData();
+  fd.append('name', name);
+  fd.append('delivery_deadline', $('peDeadline').value || '');
+  fd.append('cover_color', $('peCoverColor').value);
+  fd.append('client_id', clientId || '');
+  const bannerFile = $('peBanner').files[0];
+  if (bannerFile) fd.append('banner', bannerFile);
+  try {
+    await pb.collection('projects').update(state.editingProjectId, fd);
   } catch (err) {
     return alert('Failed to update project: ' + err.message);
   }
@@ -961,15 +1094,23 @@ $('peDeleteBtn').onclick = async () => {
 $('pmSave').onclick = async () => {
   const name = $('pmName').value.trim();
   if (!name) return;
+  let clientId;
+  try {
+    clientId = await resolveClientId($('pmClientSelect'), $('pmNewClientName'), $('pmClientLogo'));
+  } catch (err) {
+    return alert(err.message);
+  }
+  const fd = new FormData();
+  fd.append('name', name);
+  fd.append('delivery_deadline', $('pmDeadline').value || '');
+  fd.append('cover_color', $('pmCoverColor').value);
+  fd.append('created_by', state.me.id);
+  if (clientId) fd.append('client_id', clientId);
+  const bannerFile = $('pmBanner').files[0];
+  if (bannerFile) fd.append('banner', bannerFile);
   let data;
   try {
-    data = await pb.collection('projects').create({
-      name, client_name: $('pmClient').value.trim() || null,
-      delivery_deadline: $('pmDeadline').value || null,
-      cover_color: $('pmCoverColor').value,
-      logo_url: $('pmLogo').value.trim() || null,
-      created_by: state.me.id
-    });
+    data = await pb.collection('projects').create(fd);
   } catch (err) {
     return alert('Failed to create project: ' + err.message);
   }
@@ -1039,7 +1180,14 @@ function openWorkspace(projectId) {
   $('dashboard').style.display = 'none';
   $('workspace').style.display = 'flex';
   $('wsProjectName').textContent = project.name;
-  $('wsProjectClient').textContent = project.client_name ? `/ ${project.client_name}` : '';
+  {
+    const client = clientById(project.client_id);
+    const clientName = (client && client.name) || project.client_name || '';
+    const logoUrl = clientLogoUrl(client);
+    $('wsProjectClient').innerHTML = clientName
+      ? `${logoUrl ? `<img class="client-logo-badge" src="${logoUrl}" alt="" style="vertical-align:middle;margin-right:4px;">` : ''}/ ${escapeHtml(clientName)}`
+      : '';
+  }
   $('wsDeadlineTag').textContent = project.delivery_deadline ? `Due: ${project.delivery_deadline}` : 'No Deadline';
   const role = myRoleIn(projectId);
   $('wsRoleChip').textContent = role === 'master' ? 'Master' : role === 'reviewer' ? 'Reviewer' : 'Editor';
@@ -1178,8 +1326,21 @@ function selectVideoGroup(title) {
 
   select.onchange = () => loadDraftVideo(select.value);
   if (drafts.length > 0) {
-    select.value = drafts[drafts.length - 1].id;
-    loadDraftVideo(select.value);
+    const keepCurrent = state.currentVideoId && drafts.some(d => d.id === state.currentVideoId);
+    const targetId = keepCurrent ? state.currentVideoId : drafts[drafts.length - 1].id;
+    select.value = targetId;
+    if (!keepCurrent || !playerReady) {
+      loadDraftVideo(targetId);
+    } else {
+      // Same draft already loaded/playing — just refresh side panels without reloading the player (avoids resetting playback to 0:00).
+      const curV = state.videos.find(v => v.id === targetId);
+      renderStamps();
+      renderStampMarkers();
+      if (curV) {
+        renderApproveButton(curV);
+        updateActiveDraftEditor(curV);
+      }
+    }
   }
 }
 
@@ -1563,6 +1724,19 @@ async function saveMentions(text, { stampId, replyId }) {
   if (!ids.length) return;
   const rows = ids.map(uid => ({ stamp_id: stampId || null, reply_id: replyId || null, mentioned_user: uid, created_by: state.me.id }));
   await Promise.all(rows.map(row => pb.collection('mentions').create(row)));
+
+  // Notify each mentioned user (this was previously write-only with no actual notification sent).
+  const activeVideo = state.videos.find(v => v.id === state.currentVideoId);
+  const snippet = text.length > 90 ? text.slice(0, 90) + '…' : text;
+  const notifRows = ids.map(uid => ({
+    user_id: uid,
+    type: 'mention',
+    project_id: state.currentProjectId,
+    video_id: activeVideo ? activeVideo.id : null,
+    actor_id: state.me.id,
+    body: `${state.me.display_name} mentioned you${activeVideo ? ' on ' + activeVideo.title : ''}: "${snippet}"`
+  }));
+  await Promise.all(notifRows.map(row => pb.collection('notifications').create(row)));
 }
 
 $('saveNoteBtn').onclick = saveStamp;
@@ -1582,6 +1756,7 @@ async function saveStamp() {
       timestamp_seconds: Math.round(savedTime * 10) / 10,
       color: state.selectedColor,
       note,
+      status: 'open',
       created_by: state.me.id
     });
   } catch (err) {
