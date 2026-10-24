@@ -763,7 +763,7 @@ function startNotifPolling() {
   notifPollTimer = setInterval(async () => {
     if (!state.me) return;
     try {
-      const list = await pb.collection('notifications').getFullList({ sort: '-created', perPage: 50 });
+      const list = await pb.collection('notifications').getFullList({ sort: '-created', perPage: 50, requestKey: null });
       const fresh = list.filter(n => n.user_id === state.me.id && !n.read_at && !seenNotifIds.has(n.id));
       state.notifs = list;
       fresh.reverse().forEach(announceNotification);
@@ -1541,7 +1541,7 @@ $('notifyReviewerBtn').onclick = async () => {
     body: `${state.me.display_name} uploaded / updated ${activeVideo.title} (Draft ${activeVideo.draft_number}) and requested review.`
   }));
 
-  const results = await Promise.allSettled(rows.map(row => pb.collection('notifications').create(row)));
+  const results = await Promise.allSettled(rows.map(row => pb.collection('notifications').create(row, { requestKey: null })));
   const ok = results.filter(r => r.status === 'fulfilled').length;
   const failed = results.filter(r => r.status === 'rejected');
   failed.forEach(f => console.error('Notification create failed:', f.reason));
@@ -1801,7 +1801,7 @@ async function saveMentions(text, { stampId, replyId }) {
   const ids = [...new Set(names.map(u => u.id))].filter(id => id !== state.me.id);
   if (!ids.length) return;
   const rows = ids.map(uid => ({ stamp_id: stampId || null, reply_id: replyId || null, mentioned_user: uid, created_by: state.me.id }));
-  await Promise.all(rows.map(row => pb.collection('mentions').create(row)));
+  await Promise.all(rows.map(row => pb.collection('mentions').create(row, { requestKey: null })));
 
   // Notify each mentioned user (this was previously write-only with no actual notification sent).
   const activeVideo = state.videos.find(v => v.id === state.currentVideoId);
@@ -1814,7 +1814,7 @@ async function saveMentions(text, { stampId, replyId }) {
     actor_id: state.me.id,
     body: `${state.me.display_name} mentioned you${activeVideo ? ' on ' + activeVideo.title : ''}: "${snippet}"`
   }));
-  await Promise.all(notifRows.map(row => pb.collection('notifications').create(row)));
+  await Promise.all(notifRows.map(row => pb.collection('notifications').create(row, { requestKey: null })));
 }
 
 $('saveNoteBtn').onclick = saveStamp;
