@@ -238,6 +238,13 @@
   .modal-field { margin-bottom: 14px; }
   .modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 22px; }
   .kbd { display: inline-block; font-family: var(--font-mono); font-size: 10.5px; padding: 2px 5px; border: 1px solid var(--border-dark); border-radius: 3px; background: var(--surface-hover); }
+  .toast-wrap { position: fixed; top: 16px; right: 16px; z-index: 10000; display: flex; flex-direction: column; gap: 10px; max-width: 360px; pointer-events: none; }
+  .toast { pointer-events: auto; background: #1B2333; color: #fff; border-radius: 10px; padding: 12px 14px; font-size: 13px; line-height: 1.4; box-shadow: 0 10px 25px rgba(0,0,0,0.25); border-left: 4px solid #A855F7; cursor: pointer; animation: toastIn .25s ease; }
+  .toast b { display: block; font-size: 11px; letter-spacing: .04em; text-transform: uppercase; opacity: .7; margin-bottom: 3px; }
+  .toast.err { border-left-color: #EF4444; }
+  @keyframes toastIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: none; } }
+  .perm-bar { position: fixed; left: 50%; bottom: 16px; transform: translateX(-50%); z-index: 10000; background: #fff; border: 1px solid var(--border-dark); border-radius: 10px; padding: 10px 14px; font-size: 12.5px; box-shadow: 0 10px 25px rgba(0,0,0,0.15); display: none; align-items: center; gap: 12px; max-width: 92vw; }
+  .perm-bar button { white-space: nowrap; }
 </style>
 </head>
 <body>
@@ -609,6 +616,44 @@ async function requestNotificationPermission() {
   }
 }
 
+const seenNotifIds = new Set();
+function showToast(title, body, isErr, onClick) {
+  let wrap = document.getElementById('toastWrap');
+  if (!wrap) { wrap = document.createElement('div'); wrap.id = 'toastWrap'; wrap.className = 'toast-wrap'; document.body.appendChild(wrap); }
+  const t = document.createElement('div');
+  t.className = 'toast' + (isErr ? ' err' : '');
+  const h = document.createElement('b'); h.textContent = title;
+  const p = document.createElement('div'); p.textContent = body;
+  t.appendChild(h); t.appendChild(p);
+  const close = () => { if (t.parentNode) t.parentNode.removeChild(t); };
+  t.onclick = () => { try { if (onClick) onClick(); } finally { close(); } };
+  wrap.appendChild(t);
+  setTimeout(close, isErr ? 9000 : 8000);
+}
+function announceNotification(n) {
+  if (!n || seenNotifIds.has(n.id)) return;
+  seenNotifIds.add(n.id);
+  const plain = String(n.body || '').replace(/@\[([^\]]+)\]\([^)]*\)/g, '@$1');
+  showToast('TDR Revision Hub', plain, false, () => { if (n.project_id) { try { openWorkspace(n.project_id); } catch (e) {} } });
+  triggerDesktopNotification('TDR Revision Hub', plain);
+}
+function renderPermBar() {
+  let bar = document.getElementById('permBar');
+  if (!('Notification' in window)) return;
+  const perm = Notification.permission;
+  if (perm === 'granted') { if (bar) bar.style.display = 'none'; return; }
+  if (!bar) { bar = document.createElement('div'); bar.id = 'permBar'; bar.className = 'perm-bar'; document.body.appendChild(bar); }
+  if (perm === 'default') {
+    bar.innerHTML = '<span>🔔 Turn on desktop notifications to get alerted when a draft is sent for review.</span><button class="btn btn-primary btn-sm" id="permEnableBtn">Enable</button><span class="btn-ghost" id="permDismiss" style="cursor:pointer">Later</span>';
+    bar.style.display = 'flex';
+    document.getElementById('permEnableBtn').onclick = async () => { await requestNotificationPermission(); renderPermBar(); };
+  } else {
+    bar.innerHTML = '<span>🔕 Notifications are blocked in this browser. Click the lock icon in the address bar → Notifications → Allow, then reload. (In-app alerts still work.)</span><span class="btn-ghost" id="permDismiss" style="cursor:pointer">Close</span>';
+    bar.style.display = 'flex';
+  }
+  const d = document.getElementById('permDismiss'); if (d) d.onclick = () => { bar.style.display = 'none'; };
+}
+
 function triggerDesktopNotification(title, body) {
   if (!('Notification' in window)) return;
   if (Notification.permission !== 'granted') return;
@@ -704,11 +749,27 @@ async function subscribeRealtime() {
     pb.collection('notifications').subscribe('*', (e) => {
       const n = e.record;
       if (e.action === 'create' && state.me && n && n.user_id === state.me.id) {
-        triggerDesktopNotification('TDR Revision Hub', n.body);
+        announceNotification(n);
       }
       scheduleRefresh();
     })
   ]);
+}
+
+let notifPollTimer = null;
+function startNotifPolling() {
+  state.notifs.forEach(n => seenNotifIds.add(n.id));
+  clearInterval(notifPollTimer);
+  notifPollTimer = setInterval(async () => {
+    if (!state.me) return;
+    try {
+      const list = await pb.collection('notifications').getFullList({ sort: '-created', perPage: 50 });
+      const fresh = list.filter(n => n.user_id === state.me.id && !n.read_at && !seenNotifIds.has(n.id));
+      state.notifs = list;
+      fresh.reverse().forEach(announceNotification);
+      if (fresh.length) renderBells();
+    } catch (err) { /* offline or logged out; try again next tick */ }
+  }, 20000);
 }
 
 function unreadCount() { return state.notifs.filter(n => !n.read_at).length; }
@@ -790,7 +851,6 @@ $('loginBtn').onclick = async () => {
     err.style.display = 'block';
     return;
   }
-  await requestNotificationPermission();
   bootApp();
 };
 
@@ -828,7 +888,9 @@ async function bootApp() {
     };
   }
 
-  subscribeRealtime();
+  subscribeRealtime().catch(err => console.error('Realtime subscribe failed:', err));
+  startNotifPolling();
+  renderPermBar();
   renderProjectGrid();
   renderTaskPanel();
   renderBells();
@@ -1449,34 +1511,50 @@ function renderApproveButton(v) {
 
 $('notifyReviewerBtn').onclick = async () => {
   const activeVideo = state.videos.find(x => x.id === state.currentVideoId);
-  if (!activeVideo) return;
+  if (!activeVideo) { showToast('Notify Reviewer', 'Select a draft first.', true); return; }
 
   const btn = $('notifyReviewerBtn');
   btn.disabled = true;
   btn.textContent = 'Sending...';
+  const reset = (label, ms) => { btn.disabled = false; btn.textContent = label; setTimeout(() => { btn.textContent = '🔔 Notify Reviewer'; }, ms); };
+
+  // Ask for browser permission here: this click is a real user gesture (required by Safari).
+  requestNotificationPermission().then(renderPermBar);
 
   const reviewers = state.members.filter(m => m.project_id === state.currentProjectId && m.role === 'reviewer');
   const masters = state.profiles.filter(p => p.is_master);
-
   const recipientIds = [...new Set([...reviewers.map(r => r.user_id), ...masters.map(m => m.id)])]
     .filter(id => id !== state.me.id);
 
-  if (recipientIds.length > 0) {
-    const notificationsToInsert = recipientIds.map(uid => ({
-      user_id: uid,
-      type: 'new_revision',
-      project_id: state.currentProjectId,
-      video_id: activeVideo.id,
-      actor_id: state.me.id,
-      body: `${state.me.display_name} uploaded / updated ${activeVideo.title} (Draft ${activeVideo.draft_number}) and requested review.`
-    }));
-
-    await Promise.all(notificationsToInsert.map(row => pb.collection('notifications').create(row)));
+  if (!recipientIds.length) {
+    showToast('Notify Reviewer', 'Nobody to notify: this project has no Reviewer assigned (and you are the only Master). Add a Reviewer in the project Team.', true);
+    reset('No reviewer', 2500);
+    return;
   }
 
-  btn.disabled = false;
-  btn.textContent = '✓ Sent!';
-  setTimeout(() => { btn.textContent = '🔔 Notify Reviewer'; }, 2000);
+  const rows = recipientIds.map(uid => ({
+    user_id: uid,
+    type: 'new_revision',
+    project_id: state.currentProjectId,
+    video_id: activeVideo.id,
+    actor_id: state.me.id,
+    body: `${state.me.display_name} uploaded / updated ${activeVideo.title} (Draft ${activeVideo.draft_number}) and requested review.`
+  }));
+
+  const results = await Promise.allSettled(rows.map(row => pb.collection('notifications').create(row)));
+  const ok = results.filter(r => r.status === 'fulfilled').length;
+  const failed = results.filter(r => r.status === 'rejected');
+  failed.forEach(f => console.error('Notification create failed:', f.reason));
+  const names = recipientIds.map(id => (state.profiles.find(p => p.id === id) || {}).display_name || 'user').join(', ');
+
+  if (ok) {
+    showToast('Notify Reviewer', 'Sent to ' + names + (failed.length ? ' (' + failed.length + ' failed)' : '') + '.', false);
+    reset('✓ Sent!', 2000);
+  } else {
+    const why = failed[0] && failed[0].reason && (failed[0].reason.message || failed[0].reason.status) || 'unknown error';
+    showToast('Notify Reviewer', 'Could not send: ' + why, true);
+    reset('Failed', 2500);
+  }
 };
 
 function destroyPlayer() {
