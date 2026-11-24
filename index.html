@@ -254,6 +254,13 @@ body{font-size:14px;letter-spacing:-.01em} .topbar{height:70px;padding:0 32px;ba
 @media(max-width:1120px){.dash-layout{grid-template-columns:1fr}.task-panel{position:static}}
 @media(max-width:760px){.dash-body{padding:24px 16px}.topbar{padding:0 16px}.dash-head h2{font-size:24px}.ws-body{grid-template-columns:190px minmax(300px,1fr) 280px;overflow:auto}.dash-head{gap:12px}.gallery-grid{grid-template-columns:1fr}}
 
+
+  .project-archive { margin-top:28px; border-top:1px solid var(--border); padding-top:16px }
+  .project-archive > summary, .task-project > summary { cursor:pointer; padding:10px 0; font-weight:600 }
+  .project-archive > summary { margin-bottom:8px; width:fit-content }
+  .task-project > summary { padding:10px 16px; border-bottom:1px solid var(--border); color:var(--text); font-size:13px }
+  .group-count { margin-left:6px; color:var(--text-muted); font-size:12px }
+  .restore-btn { margin-top:12px }
 </style>
 </head>
 <body>
@@ -303,6 +310,10 @@ body{font-size:14px;letter-spacing:-.01em} .topbar{height:70px;padding:0 32px;ba
           <div id="dashActions"></div>
         </div>
         <div class="gallery-grid" id="projectGrid"></div>
+        <details class="project-archive" id="archiveSection">
+          <summary>Archived Projects <span class="group-count" id="archiveCount"></span></summary>
+          <div class="gallery-grid" id="archiveGrid"></div>
+        </details>
       </div>
 
       <div class="task-panel" id="taskPanel">
@@ -509,6 +520,19 @@ body{font-size:14px;letter-spacing:-.01em} .topbar{height:70px;padding:0 32px;ba
   </div>
 </div>
 
+<div class="modal-backdrop" id="restoreModal" role="dialog" aria-modal="true" aria-labelledby="restoreHeading">
+  <div class="modal">
+    <h3 id="restoreHeading">Return to Running Projects</h3>
+    <p class="modal-sub" id="restoreName"></p>
+    <label for="restoreVideo" class="field-label">Choose work to resume</label>
+    <select class="input" id="restoreVideo"></select>
+    <p class="modal-sub" id="restoreHint"></p>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" data-close="restoreModal">Cancel</button>
+      <button class="btn btn-primary" id="restoreContinue">Continue</button>
+    </div>
+  </div>
+</div>
 <div class="modal-backdrop" id="videoModal">
   <div class="modal">
     <h3 id="vmModalTitle">Video Setup</h3>
@@ -966,11 +990,78 @@ async function bootApp() {
   } catch (e) {}
 }
 
+// A title is one deliverable. Earlier approvals stay with their drafts.
+function projectVideoGroups(projectId) {
+  const groups = new Map();
+  for (const video of state.videos.filter(v => v.project_id === projectId)) {
+    if (!groups.has(video.title)) groups.set(video.title, []);
+    groups.get(video.title).push(video);
+  }
+  return Array.from(groups, ([title, drafts]) => {
+    drafts.sort((a, b) => a.draft_number - b.draft_number ||
+      (a.created || '').localeCompare(b.created || '') || a.id.localeCompare(b.id));
+    const latest = drafts[drafts.length - 1];
+    const lastApproval = drafts.map(d => d.status === 'approved' || d.status === 'completed').lastIndexOf(true);
+    const pendingIds = new Set(drafts.slice(lastApproval + 1).map(d => d.id));
+    const notes = state.stamps.filter(s => pendingIds.has(s.video_id));
+    const openCount = notes.filter(s => s.status === 'open').length;
+    const isApproved = latest.status === 'approved';
+    const completed = isApproved || latest.status === 'completed' || (notes.some(s => s.video_id === latest.id) && openCount === 0);
+    return {title, drafts, latest, pendingIds, openCount, isApproved, completed};
+  });
+}
+
+function restoreProject(project, groups) {
+  const select = $('restoreVideo'), submit = $('restoreContinue');
+  select.replaceChildren(new Option('Add a new video', ''));
+  if (canReview(project.id)) {
+    for (const group of groups) select.add(new Option('Reopen: ' + group.title, group.latest.id));
+  }
+  $('restoreName').textContent = project.name;
+  const updateHint = () => {
+    $('restoreHint').textContent = select.value
+      ? 'The selected draft will return to review. Other videos keep their approvals.'
+      : 'The project returns to Running Projects when you save the new video.';
+    submit.textContent = select.value ? 'Reopen video and project' : 'Add new video';
+  };
+  select.onchange = updateHint;
+  updateHint();
+  submit.onclick = async () => {
+    const videoId = select.value;
+    if (!videoId) {
+      closeModal('restoreModal');
+      openWorkspace(project.id);
+      $('addNewVideoGroupBtn').click();
+      return;
+    }
+    if (!canReview(project.id)) return;
+    submit.disabled = true;
+    try {
+      await pb.collection('videos').update(videoId, {status:'in_review', approved_by:null});
+      closeModal('restoreModal');
+      if (!await loadAll()) throw new Error('Reload the page to see the current project status.');
+      renderProjectGrid();
+      renderTaskPanel();
+    } catch (err) {
+      showToast('Return to Running Projects', err.message, true);
+    } finally {
+      submit.disabled = false;
+    }
+  };
+  openModal('restoreModal');
+  select.focus();
+}
+
 function renderProjectGrid() {
   const grid = $('projectGrid');
-  grid.innerHTML = '';
+  const archive = $('archiveGrid');
+  grid.replaceChildren();
+  archive.replaceChildren();
+  let archivedCount = 0;
 
   state.projects.forEach(p => {
+    const groups = projectVideoGroups(p.id);
+    const archived = groups.length > 0 && groups.every(group => group.isApproved);
     const card = document.createElement('div');
     card.className = 'gallery-card';
     const deadlineText = p.delivery_deadline ? new Date(p.delivery_deadline).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'No deadline';
@@ -985,7 +1076,7 @@ function renderProjectGrid() {
     } else if (logoUrl) {
       bannerInner = `<img class="card-logo-img" src="${logoUrl}" alt="Logo">`;
     } else {
-      bannerInner = `<div class="card-banner-text">${p.name.substring(0,2).toUpperCase()}</div>`;
+      bannerInner = `<div class="card-banner-text">${escapeHtml(p.name.substring(0,2).toUpperCase())}</div>`;
     }
 
     card.innerHTML = `
@@ -1006,11 +1097,18 @@ function renderProjectGrid() {
         </div>
         <div class="card-meta-row">
           <span class="card-deadline">⏱ ${deadlineText}</span>
-          <span class="badge badge-draft">${state.videos.filter(v => v.project_id === p.id).length} Videos</span>
+          <span class="badge badge-draft">${groups.length} ${groups.length === 1 ? 'Video' : 'Videos'}</span>
         </div>
       </div>
     `;
 
+    if (archived && myRoleIn(p.id)) {
+      const restore = document.createElement('button');
+      restore.className = 'btn btn-sm restore-btn';
+      restore.textContent = 'Return to Running Projects';
+      restore.onclick = e => { e.stopPropagation(); restoreProject(p, groups); };
+      card.querySelector('.card-content').appendChild(restore);
+    }
     card.onclick = (e) => {
       if (e.target.classList.contains('edit-btn')) {
         openEditProjectModal(p);
@@ -1020,8 +1118,12 @@ function renderProjectGrid() {
         openWorkspace(p.id);
       }
     };
-    grid.appendChild(card);
+    (archived ? archive : grid).appendChild(card);
+    if (archived) archivedCount++;
   });
+  $('archiveCount').textContent = '(' + archivedCount + ')';
+  if (!archivedCount) archive.textContent = 'No archived projects.';
+  if (!grid.children.length) grid.textContent = 'No running projects.';
 }
 
 $('taskTabForMe').onclick = () => {
@@ -1040,11 +1142,15 @@ $('taskTabAll').onclick = () => {
 function myOpenTasks() {
   const out = [];
   state.projects.forEach(p => {
-    const pVids = state.videos.filter(v => v.project_id === p.id);
-    const vidIds = pVids.map(v => v.id);
-
-    state.stamps.filter(s => vidIds.includes(s.video_id) && s.status === 'open').forEach(s => {
-      const v = pVids.find(x => x.id === s.video_id);
+    const eligible = new Map();
+    for (const group of projectVideoGroups(p.id)) {
+      if (group.completed) continue;
+      for (const draft of group.drafts) {
+        if (group.pendingIds.has(draft.id)) eligible.set(draft.id, draft);
+      }
+    }
+    state.stamps.filter(s => eligible.has(s.video_id) && s.status === 'open').forEach(s => {
+      const v = eligible.get(s.video_id);
       const isUploader = (v && v.uploaded_by === state.me.id);
       const mentionsMe = new RegExp('@' + state.me.display_name + '\\b', 'i').test(s.note);
 
@@ -1064,6 +1170,7 @@ function myOpenTasks() {
   });
 }
 
+const expandedTaskProjects = new Set();
 function renderTaskPanel() {
   const list = $('taskList');
   const tasks = myOpenTasks();
@@ -1072,13 +1179,14 @@ function renderTaskPanel() {
     list.innerHTML = `<div style="padding:28px 16px;text-align:center;color:var(--text-faint);font-size:12.5px;">No open revisions ${state.taskFilter==='mine'?'for you':'in projects'}. All clear!</div>`;
     return;
   }
-  let html = '', lastProject = null;
-  tasks.forEach(t => {
-    if (t.project.id !== lastProject) {
-      html += `<div class="task-group">${escapeHtml(t.project.name)}</div>`;
-      lastProject = t.project.id;
-    }
-    html += `<div class="task-item ${t.mentionsMe ? 'mine' : ''}" data-pid="${t.project.id}" data-vid="${t.video.id}" data-time="${t.stamp.timestamp_seconds}">
+  const groups = new Map();
+  for (const task of tasks) {
+    if (!groups.has(task.project.id)) groups.set(task.project.id, []);
+    groups.get(task.project.id).push(task);
+  }
+  list.innerHTML = Array.from(groups, ([id, items]) => {
+    const key = state.me.id + '/' + id;
+    const rows = items.map(t => `<div class="task-item ${t.mentionsMe ? 'mine' : ''}" data-pid="${t.project.id}" data-vid="${t.video.id}" data-time="${t.stamp.timestamp_seconds}">
       <div class="task-dot" style="background:${t.stamp.color}"></div>
       <div style="flex:1;min-width:0">
         <div class="task-note">${renderMentions(t.stamp.note)}</div>
@@ -1088,9 +1196,19 @@ function renderTaskPanel() {
           ${t.mentionsMe ? '<span class="mine-flag">for you</span>' : ''}
         </div>
       </div>
-    </div>`;
+    </div>`).join('');
+    return `<details class="task-project" data-project="${id}" ${expandedTaskProjects.has(key) ? 'open' : ''}>
+      <summary>${escapeHtml(items[0].project.name)} <span class="group-count">(${items.length})</span></summary>
+      ${rows}</details>`;
+  }).join('');
+  list.querySelectorAll('.task-project').forEach(group => {
+    group.ontoggle = () => {
+      if (!group.isConnected) return;
+      const key = state.me.id + '/' + group.dataset.project;
+      if (group.open) expandedTaskProjects.add(key);
+      else expandedTaskProjects.delete(key);
+    };
   });
-  list.innerHTML = html;
 
   list.querySelectorAll('.task-item').forEach(item => {
     item.onclick = () => {
@@ -1332,35 +1450,22 @@ $('backBtn').onclick = () => {
   destroyPlayer();
   $('workspace').style.display = 'none';
   $('dashboard').style.display = 'flex';
+  renderProjectGrid();
   renderTaskPanel();
 };
 
 function renderWorkspaceVideos() {
-  const pVids = state.videos.filter(v => v.project_id === state.currentProjectId);
+  const groups = projectVideoGroups(state.currentProjectId);
   const nav = $('videoNavList');
   nav.innerHTML = '';
-  const titles = [...new Set(pVids.map(v => v.title))];
-
-  const activeTitles = [];
-  const completedTitles = [];
-
-  titles.forEach(title => {
-    const drafts = pVids.filter(v => v.title === title).sort((a, b) => a.draft_number - b.draft_number);
-    const draftIds = drafts.map(d => d.id);
-    const openCount = state.stamps.filter(s => draftIds.includes(s.video_id) && s.status === 'open').length;
-    const isApproved = drafts.some(d => d.status === 'approved');
-
-    if (isApproved || (drafts.length > 0 && openCount === 0 && state.stamps.some(s => draftIds.includes(s.video_id)))) {
-      completedTitles.push({ title, drafts, openCount, isApproved });
-    } else {
-      activeTitles.push({ title, drafts, openCount, isApproved });
-    }
-  });
+  const titles = groups.map(g => g.title);
+  const activeTitles = groups.filter(g => !g.completed);
+  const completedTitles = groups.filter(g => g.completed);
 
   const renderVideoItemHtml = (itemData, isCompleted = false) => {
     const { title, drafts, openCount, isApproved } = itemData;
     const latestDraft = drafts[drafts.length - 1];
-    const approvedDraft = drafts.find(d => d.status === 'approved');
+    const approvedDraft = isApproved ? latestDraft : null;
 
     const uploaderIds = [...new Set(drafts.map(d => d.uploaded_by).filter(Boolean))];
     const editorNames = uploaderIds.map(uid => {
@@ -1371,7 +1476,7 @@ function renderWorkspaceVideos() {
     let statusBadgeHtml = '';
     if (approvedDraft) {
       statusBadgeHtml = `<span class="badge badge-approved" style="font-size:10px;">Approved on D${approvedDraft.draft_number}</span>`;
-    } else if (openCount === 0 && drafts.length > 0) {
+    } else if (isCompleted) {
       statusBadgeHtml = `<span class="badge badge-approved" style="font-size:10px;">Completed</span>`;
     } else {
       statusBadgeHtml = `<span class="badge badge-review" style="font-size:10px;">In Review</span>`;
