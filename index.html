@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
+<head><link rel="icon" type="image/png" sizes="64x64" href="/tdr-films-icon.png">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="referrer" content="strict-origin-when-cross-origin">
@@ -351,13 +351,14 @@ const TdrOne=(()=>{
 })();
 
 </script>
+<style>.hub-wordmark{display:block;width:80px;height:40px;object-fit:contain;flex:none}@media(max-width:640px){.hub-wordmark{width:54px;height:28px}}</style>
 </head>
 <body>
 
 <div id="dashboard">
   <div class="topbar">
     <div class="topbar-left">
-      <div class="brand-logo">T</div>
+      <img class="hub-wordmark" src="/tdr-films-wordmark.png" width="80" height="40" alt="TDR FILMS.">
       <div class="topbar-title">TDR Revision Hub</div>
     </div>
     <div class="topbar-right">
@@ -406,6 +407,7 @@ const TdrOne=(()=>{
 <div id="workspace">
   <div class="topbar">
     <div class="topbar-left">
+      <img class="hub-wordmark" src="/tdr-films-wordmark.png" width="80" height="40" alt="TDR FILMS.">
       <button class="btn btn-ghost btn-sm" id="backBtn">← Projects</button>
       <div class="topbar-title" id="wsProjectName">—</div>
       <div class="topbar-sub" id="wsProjectClient"></div>
