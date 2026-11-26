@@ -367,6 +367,7 @@ body{font-size:14px;letter-spacing:-.01em} .topbar{height:70px;padding:0 32px;ba
           <button class="btn btn-notify btn-sm" id="notifyReviewerBtn" title="Send notification to Reviewer and Master">🔔 Notify Reviewer</button>
         </div>
         <div style="display: flex; align-items: center; gap: 10px;">
+          <span id="bridgeStatus" aria-live="polite"></span>
           <span id="activeDraftEditor" style="font-size: 12px; color: var(--text-muted); font-weight: 500;"></span>
           <div id="approveSlot"></div>
         </div>
@@ -549,7 +550,7 @@ body{font-size:14px;letter-spacing:-.01em} .topbar{height:70px;padding:0 32px;ba
       <label class="field-label">Draft Number</label>
       <input type="number" class="input" id="vmDraft" min="1" value="1">
     </div>
-    <div class="modal-actions" style="justify-content: space-between;" id="vmActionsRow">
+    <label id="bridgeField" class="modal-field" hidden>Team task<select id="bridgeTask" class="input"></select></label><div class="modal-actions" style="justify-content: space-between;" id="vmActionsRow">
       <div id="vmDeleteArea" style="display: flex; gap: 6px;"></div>
       <div style="display: flex; gap: 8px;">
         <button class="btn btn-ghost" data-close="videoModal">Cancel</button>
@@ -985,6 +986,8 @@ async function bootApp() {
     const qp = new URLSearchParams(location.search).get('project');
     if (qp) {
       if (state.projects.find(p => p.id === qp)) openWorkspace(qp);
+      const id=new URLSearchParams(location.search).get('video'), v=state.videos.find(v=>v.id===id&&v.project_id===qp);
+      if(v && state.currentProjectId===qp){selectVideoGroup(v.title);$('draftSelect').value=v.id;loadDraftVideo(v.id);}
       history.replaceState(null, '', location.pathname);
     }
   } catch (e) {}
@@ -1536,6 +1539,7 @@ function renderWorkspaceVideos() {
     destroyPlayer();
     $('draftSelect').innerHTML = '';
     $('activeDraftEditor').textContent = '';
+    $('bridgeStatus').replaceChildren();
     state.currentVideoId = null;
     state.selectedVideoTitle = null;
     renderStamps();
@@ -1593,6 +1597,7 @@ function updateActiveDraftEditor(video) {
 
 function loadDraftVideo(videoId) {
   state.currentVideoId = videoId;
+  reviewBridge.display(videoId);
   const video = state.videos.find(v => v.id === videoId);
   if (!video) {
     renderStamps();
@@ -1790,6 +1795,7 @@ $('editVideoBtn').onclick = () => {
   $('vmModalTitle').textContent = 'Edit YouTube Link';
   $('vmTitle').value = v.title;
   $('vmUrl').value = `https://youtu.be/${v.youtube_id}`;
+  reviewBridge.generation++;$('bridgeField').hidden=true;$('vmSave').disabled=false;
   $('vmDraft').value = v.draft_number;
 
   $('vmDeleteArea').innerHTML = `
@@ -1818,6 +1824,70 @@ $('editVideoBtn').onclick = () => {
   openModal('videoModal');
 };
 
+const reviewBridge = {
+  generation:0,parent:"",mapped:false,tasks:[],optionCache:new Map(),timer:null,
+  async prepare(parent=""){
+    const seq=++this.generation,project=state.currentProjectId,select=$('bridgeTask'),save=$('vmSave');
+    this.parent=parent;this.mapped=false;this.tasks=[];
+    $('bridgeField').hidden=false;select.replaceChildren(new Option('Loading Team tasks…',''));
+    save.disabled=true;select.disabled=true;
+    try{
+      let options;
+      try{
+        options=await pb.send('/api/tdr-bridge/options/'+project,{method:'GET',requestKey:null});
+        this.optionCache.set(project,options);
+      }catch(error){
+        if(error.status && error.status<500)throw error;
+        options=this.optionCache.get(project);if(!options)throw error;
+      }
+      const previous=parent?await this.status(parent):null;
+      if(seq!==this.generation)return;
+      this.tasks=options.tasks;this.mapped=options.mapped;
+      $('bridgeField').hidden=!options.mapped;
+      select.replaceChildren(new Option(options.tasks.length?'Choose a Team task':'No assigned tasks linked to this period',''));
+      for(const t of options.tasks){
+        const o=new Option(t.name+' · '+t.period,t.task);o.dataset.scope=t.scope;select.add(o);
+        if(previous?.task===t.task&&previous.scope===t.scope)o.selected=true;
+      }
+      select.disabled=!!previous?.task;
+      save.disabled=this.mapped&&!select.value;
+      select.onchange=()=>{save.disabled=!select.value;};
+    }catch(error){
+      if(seq!==this.generation)return;
+      select.replaceChildren(new Option('Could not load Team tasks. Reopen to retry.',''));
+    }
+  },
+  status(video){return pb.send('/api/tdr-bridge/status/'+video,{method:'GET',requestKey:null});},
+  async save(fields){
+    const choice=$('bridgeTask').selectedOptions[0];
+    if(!choice?.value)throw Error('Select the Team task first.');
+    const data={...fields,project:state.currentProjectId,task:choice.value,scope:choice.dataset.scope,parent:this.parent};
+    const cacheKey='tdr.review.submit.'+JSON.stringify([state.me.id,data]);
+    data.request_key=sessionStorage.getItem(cacheKey)||crypto.randomUUID();
+    sessionStorage.setItem(cacheKey,data.request_key);
+    const record=await pb.send('/api/tdr-bridge/videos',{method:'POST',body:data,requestKey:null});
+    sessionStorage.removeItem(cacheKey);return record;
+  },
+  async display(id){
+    clearTimeout(this.timer);
+    const box=$('bridgeStatus');box.replaceChildren();
+    if(!id)return;
+    try{
+      const info=await this.status(id);
+      if(state.currentVideoId!==id||info.state==='unlinked')return;
+      box.append(document.createTextNode(({linked:'Terhubung',pending:'Menunggu',attention:'Perlu tindakan'})[info.state]+' · '));
+      const a=document.createElement('a');a.href='https://team.tdrfilms.com/?task='+encodeURIComponent(info.task);a.textContent='Buka tugas Team';box.append(a);
+      if(info.reason){const reason=document.createElement('small');reason.textContent=' · '+info.reason;box.append(reason);}
+      if(info.retry&&info.state!=='linked'){
+        const button=document.createElement('button');button.className='btn btn-ghost btn-sm';button.textContent='Coba lagi';
+        button.onclick=async()=>{button.disabled=true;try{await pb.send('/api/tdr-bridge/retry/'+id,{method:'POST',requestKey:null});}finally{this.display(id);}};
+        box.append(button);
+      }
+      if(info.state==='pending')this.timer=setTimeout(()=>{if(id===state.currentVideoId)this.display(id);},15000);
+    }catch(error){if(state.currentVideoId===id)box.textContent='Status Team belum tersedia.';}
+  }
+};
+
 $('addNewVideoGroupBtn').onclick = () => {
   state.editingVideoId = null;
   $('vmModalTitle').textContent = 'Add New Video Title';
@@ -1825,7 +1895,7 @@ $('addNewVideoGroupBtn').onclick = () => {
   $('vmUrl').value = '';
   $('vmDraft').value = 1;
   $('vmDeleteArea').innerHTML = '';
-  openModal('videoModal');
+  reviewBridge.prepare();openModal('videoModal');
 };
 
 $('addNewDraftBtn').onclick = () => {
@@ -1838,7 +1908,7 @@ $('addNewDraftBtn').onclick = () => {
   $('vmDeleteArea').innerHTML = '';
   const siblingDrafts = state.videos.filter(v => v.project_id === state.currentProjectId && v.title === activeVideo.title);
   $('vmDraft').value = Math.max(...siblingDrafts.map(v => v.draft_number)) + 1;
-  openModal('videoModal');
+  reviewBridge.prepare(state.currentVideoId);openModal('videoModal');
 };
 
 $('vmSave').onclick = async () => {
@@ -1848,7 +1918,12 @@ $('vmSave').onclick = async () => {
   const ytId = extractYouTubeId(url);
   if (!title || !ytId) return alert('Invalid Title or YouTube Link/Shorts URL');
 
-  if (state.editingVideoId) {
+  if($('vmSave').disabled)return;
+  $('vmSave').disabled=true;
+  try {
+  if(!state.editingVideoId && reviewBridge.mapped){
+    await reviewBridge.save({title,youtube_id:ytId,draft_number:draft});
+  }else   if (state.editingVideoId) {
     await pb.collection('videos').update(state.editingVideoId, { title, youtube_id: ytId, draft_number: draft });
   } else {
     await pb.collection('videos').create({
@@ -1860,6 +1935,7 @@ $('vmSave').onclick = async () => {
   closeModal('videoModal');
   await loadAll();
   renderWorkspaceVideos();
+  }catch(error){alert(error.response?.message||error.message||'Could not save draft');}finally{$('vmSave').disabled=false;}
 };
 
 function setStampColor(hex) {
