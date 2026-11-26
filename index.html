@@ -262,25 +262,97 @@ body{font-size:14px;letter-spacing:-.01em} .topbar{height:70px;padding:0 32px;ba
   .group-count { margin-left:6px; color:var(--text-muted); font-size:12px }
   .restore-btn { margin-top:12px }
 </style>
+<script>
+/* Load before the app's normal startup and call TdrOne.open at its session entry point. */
+const TdrOne=(()=>{
+ const portal="https://one.tdrfilms.com";
+ const routes={
+  "team.tdrfilms.com":["team","https://api.tdrfilms.com/api/tdr-one/redeem"],
+  "pipis.tdrfilms.com":["finance","https://api.tdrfilms.com/api/tdr-one/redeem"],
+  "employee.tdrfilms.com":["employee","https://api-kpi.tdrfilms.com/api/tdr-one/open"],
+  "revision.tdrfilms.com":["revision","https://api-revision.tdrfilms.com/api/tdr-one/open"]
+ };
+ const [app,endpoint]=routes[location.hostname]||[];
+ let frame,ready,subject="",destroy=()=>{},expiryTimer,checking=false,ending=false;
+ const pending=new Map();
+ function bridge(){
+  if(ready)return ready;
+  frame=document.createElement("iframe");frame.hidden=true;frame.title="TDR ONE session";
+  ready=new Promise((resolve,reject)=>{
+   const timer=setTimeout(()=>reject(Error("TDR ONE is unavailable.")),12000);
+   frame.onload=()=>{clearTimeout(timer);resolve()};
+  });
+  frame.src=portal+"/bridge.html";document.body.append(frame);
+  return ready;
+ }
+ function signal(action){
+  return bridge().then(()=>new Promise((resolve,reject)=>{
+   const id=crypto.randomUUID();
+   const timer=setTimeout(()=>{pending.delete(id);reject(Error("TDR ONE did not respond."))},12000);
+   pending.set(id,data=>{clearTimeout(timer);data.status?reject(Object.assign(Error("Session unavailable"),{status:data.status})):resolve(data)});
+   frame.contentWindow.postMessage({type:"tdr-one",action,id},portal);
+  }));
+ }
+ window.addEventListener("message",event=>{
+  if(event.origin!==portal||!frame||event.source!==frame.contentWindow)return;
+  const data=event.data;
+  if(data?.type==="tdr-one-changed"){if(subject)check();return}
+  if(data?.type!=="tdr-one-result"||!pending.has(data.id))return;
+  pending.get(data.id)(data);pending.delete(data.id);
+ });
+ function cover(text,link=false){
+  let box=document.getElementById("tdr-one-screen");
+  if(!box){box=document.createElement("section");box.id="tdr-one-screen";document.body.append(box)}
+  box.style.cssText="position:fixed;inset:0;z-index:2147483647;background:#101411;color:#f4f6f4;display:grid;align-content:center;justify-items:center;gap:16px;padding:32px;font:16px system-ui";
+  Array.from(document.body.children).forEach(el=>{if(el!==box&&el!==frame&&el.tagName!=="SCRIPT"&&!el.inert){el.inert=true;el.dataset.oneInert="1"}});
+  const title=document.createElement("strong");title.textContent="TDR ONE";
+  const msg=document.createElement("span");msg.textContent=text;box.replaceChildren(title,msg);
+  if(link){const a=document.createElement("a");a.href=portal+"/";a.textContent="Open TDR ONE";a.style.color="#76dbad";box.append(a);
+   const retry=document.createElement("button");retry.textContent="Try again";retry.onclick=()=>location.reload();box.append(retry)}
+ }
+ function uncover(){document.getElementById("tdr-one-screen")?.remove();document.querySelectorAll('[data-one-inert="1"]').forEach(el=>{el.inert=false;delete el.dataset.oneInert})}
+ function clear(){clearTimeout(expiryTimer);subject="";destroy()}
+ function handle(e){
+  clear();
+  if(e.status===401){sessionStorage.setItem("tdr.one.return",location.href);location.replace(portal+"/?app="+app);return}
+  cover(e.status===403?"This account does not have access to this app.":"Could not open your TDR ONE session.",true);
+ }
+ async function check(){
+  if(!subject||checking||ending)return;checking=true;
+  try{const session=await signal("check");if(session.subject!==subject){clear();location.reload()}}
+  catch(e){handle(e)}finally{checking=false}
+ }
+ async function open(save,reset,start){
+  destroy=reset;
+  if(!app){cover("This address is not configured for TDR ONE.",true);return}
+  const back=sessionStorage.getItem("tdr.one.return");sessionStorage.removeItem("tdr.one.return");
+  if(back&&location.pathname==="/"&&!location.search&&!location.hash){
+   const url=new URL(back);if(url.origin===location.origin&&url.href!==location.href){location.replace(url.href);return}
+  }
+  cover("Opening your workspace…");
+  try{
+   const grant=await signal("open");
+   const response=await fetch(endpoint,{method:"POST",redirect:"error",cache:"no-store",headers:{"Content-Type":"application/json"},body:JSON.stringify({app,code:grant.code})});
+   if(!response.ok)throw Object.assign(Error("Could not open this account"),{status:response.status===403?403:503});
+   const data=await response.json();if(!data.token||!data.record?.id)throw Error("Incomplete sign-in");
+   save(data);subject=grant.subject;
+   expiryTimer=setTimeout(check,Math.max(0,grant.expires*1000-Date.now())+250);
+   await start();uncover();
+   window.addEventListener("pageshow",check);document.addEventListener("visibilitychange",()=>{if(!document.hidden)check()});
+   setInterval(check,60000);
+  }catch(e){handle(e)}
+ }
+ async function logout(){
+  ending=true;cover("Signing out…");
+  try{await signal("logout");clear();location.replace(portal+"/")}
+  catch{ending=false;cover("Could not finish signing out. Try again.",true)}
+ }
+ return {open,logout};
+})();
+
+</script>
 </head>
 <body>
-
-<div id="loginScreen">
-  <div class="login-card">
-    <h1>TDR Revision Hub</h1>
-    <p class="login-sub">Sign in with your workspace email</p>
-    <div class="login-field">
-      <label class="field-label">Email</label>
-      <input type="email" class="input" id="loginEmail" placeholder="name@tdrfilms.com">
-    </div>
-    <div class="login-field">
-      <label class="field-label">Password</label>
-      <input type="password" class="input" id="loginPass" placeholder="••••••••">
-    </div>
-    <div class="login-error" id="loginError">Invalid credentials.</div>
-    <button class="btn btn-primary" id="loginBtn" style="width: 100%">Sign In</button>
-  </div>
-</div>
 
 <div id="dashboard">
   <div class="topbar">
@@ -923,25 +995,9 @@ function wireBell(prefix) {
 wireBell('dash'); wireBell('ws');
 document.addEventListener('click', () => document.querySelectorAll('.notif-panel').forEach(x => x.classList.remove('open')));
 
-$('loginBtn').onclick = async () => {
-  const email = $('loginEmail').value.trim().toLowerCase();
-  const password = $('loginPass').value;
-  const err = $('loginError');
-  err.style.display = 'none';
-
-  try {
-    await pb.collection('users').authWithPassword(email, password);
-  } catch (error) {
-    err.style.display = 'block';
-    return;
-  }
-  bootApp();
-};
-
 $('logoutBtn').onclick = async () => {
   await removeMyPushSubscription();
-  pb.authStore.clear();
-  location.reload();
+  await TdrOne.logout();
 };
 
 async function bootApp() {
@@ -950,9 +1006,8 @@ async function bootApp() {
   if (!user) return;
   await loadAll();
   state.me = state.profiles.find(p => p.id === user.id);
-  if (!state.me) return;
+  if (!state.me) throw Error('Revision profile unavailable');
 
-  $('loginScreen').style.display = 'none';
   $('dashboard').style.display = 'flex';
   $('dashUserName').textContent = state.me.display_name;
   $('dashRoleChip').textContent = state.me.is_master ? 'Master' : 'Editor / Reviewer';
@@ -2351,7 +2406,7 @@ document.querySelectorAll('[data-close]').forEach(b => {
   b.onclick = () => closeModal(b.dataset.close);
 });
 
-bootApp();
+TdrOne.open(d=>pb.authStore.save(d.token,d.record),()=>pb.authStore.clear(),bootApp);
 </script>
 </body>
 </html>
